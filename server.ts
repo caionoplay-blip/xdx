@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
-import { createClient } from "@supabase/supabase-js";
+import { queries, getDatabase } from "./api/_lib/db.js";
 
 dotenv.config();
 
@@ -43,34 +43,24 @@ async function startServer() {
       }
 
     const imageData = image.includes('base64,') ? image.split('base64,')[1] : image;
-    
-    const supabaseUrl = process.env.VITE_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseAdmin = (supabaseUrl && serviceKey) ? createClient(supabaseUrl, serviceKey) : null;
 
     async function saveToDatabase(name: string, price: number, engine: string): Promise<string | null> {
-      if (!supabaseAdmin) return null;
       try {
-        const { data, error } = await supabaseAdmin.from('items').insert([{
+        const id = queries.insertItem({
           name,
           price,
           quantity: 1,
-          store_name: "Local Dev (DaaS)",
+          store_name: "Local Dev (SQL)",
           is_session: true,
-          is_abandoned: true, // Começa como abandonado (Inteligência B2B)
+          is_abandoned: true,
           shelf_category: inferCategory(name),
-          raw_text: `Local-Engine: ${engine}`
-        }]).select('id').single();
-        
-        if (error || !data) {
-          console.error("[DB-LOCAL-ERROR]", error?.message || "Sem retorno de ID");
-          return null;
-        }
-        
-        console.log(`[DB-LOCAL] Scan salvo (${data.id}): ${name}`);
-        return data.id;
+          raw_text: `Local-Engine: ${engine}`,
+          user_id: 'system'
+        });
+        console.log(`[SQL-LOCAL] Scan salvo (${id}): ${name}`);
+        return id;
       } catch (e) {
-        console.error("[DB-LOCAL-CRASH]", e);
+        console.error("[SQL-LOCAL-CRASH]", e);
         return null;
       }
     }
@@ -142,6 +132,7 @@ async function startServer() {
       return data.choices[0].message.content || "{}";
     }
 
+    let resultText = '';
     let lastInsertedId: string | null = null;
     let engineUsed = "";
     
@@ -219,38 +210,24 @@ async function startServer() {
     });
   });
 
-  // API do Admin (Local) - Habilita o Dashboard no ambiente de desenvolvimento
+  // API do Admin (Local SQL) - Habilita o Dashboard no ambiente de desenvolvimento
   app.post("/api/admin", async (req, res) => {
     try {
       const { adminToken, action } = req.body || {};
-      const secret = (process.env.ADMIN_SECRET || '').replace(/[^\x00-\x7F]/g, "").trim();
-      const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').replace(/[^\x00-\x7F]/g, "").trim();
-      const supabaseUrl = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/[^\x00-\x7F]/g, "").trim();
-
-      if (!secret || !serviceKey || !supabaseUrl) {
-        return res.status(500).json({ error: "Configuração incompleta no .env local (ADMIN_SECRET ou SERVICE_ROLE_KEY faltando)." });
-      }
+      const secret = (process.env.ADMIN_SECRET || 'xdx-admin-123').replace(/[^\x00-\x7F]/g, "").trim();
 
       if (!adminToken || adminToken !== secret) {
         return res.status(401).json({ error: "Senha de administrador incorreta." });
       }
 
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
-        auth: { autoRefreshToken: false, persistSession: false }
-      });
+      const db = getDatabase();
 
-      // --- Lógica Completa de Admin para o Local ---
+      // --- Lógica SQL para o Local ---
       if (action === 'overview') {
-        const [itemsRes, usersRes, sessionsRes] = await Promise.all([
-          supabaseAdmin.from('items').select('id', { count: 'exact', head: true }),
-          supabaseAdmin.from('items').select('user_id').neq('user_id', null),
-          supabaseAdmin.from('items').select('trip_id, price, quantity, target_budget, is_session')
-        ]);
-        
+        const all = db.prepare('SELECT * FROM items').all() as any[];
         let activeSessions = 0;
         const tripsMap = new Map();
-        (sessionsRes.data || []).forEach((item: any) => {
+        all.forEach((item: any) => {
           if (item.is_session) activeSessions++;
           if (item.trip_id) {
             const t = tripsMap.get(item.trip_id) || { total: 0, budget: item.target_budget || 0 };
@@ -258,64 +235,51 @@ async function startServer() {
             tripsMap.set(item.trip_id, t);
           }
         });
-
-        const totalScans = itemsRes.count || 0;
-        const uniqueUsers = new Set((usersRes.data || []).map((r: any) => r.user_id)).size;
-
+        const totalScans = all.length;
+        const uniqueUsers = new Set(all.map((r: any) => r.user_id).filter(Boolean)).size;
         let totalEconomized = 0;
-        tripsMap.forEach(({ total, budget }) => {
-          if (budget > 0) totalEconomized += (budget - total);
-        });
-
+        tripsMap.forEach(({ total, budget }) => { if (budget > 0) totalEconomized += (budget - total); });
         return res.json({
-          totalScans,
-          uniqueUsers,
-          totalTrips: tripsMap.size,
-          activeSessions,
+          totalScans, uniqueUsers, totalTrips: tripsMap.size, activeSessions,
           totalEconomized: Math.round(totalEconomized * 100) / 100,
           avgScansPerTrip: tripsMap.size > 0 ? Math.round((totalScans / tripsMap.size) * 10) / 10 : 0
         });
       }
 
       if (action === 'timeline') {
-        const since = new Date();
-        since.setDate(since.getDate() - 30);
-        const { data } = await supabaseAdmin.from('items').select('created_at').gte('created_at', since.toISOString());
+        const since = new Date(); since.setDate(since.getDate() - 30);
+        const data = db.prepare('SELECT created_at FROM items WHERE created_at >= ?').all(since.toISOString()) as any[];
         const counts: any = {};
-        (data || []).forEach((i:any) => { const d = i.created_at.slice(0,10); counts[d] = (counts[d]||0)+1; });
+        data.forEach((i:any) => { const d = i.created_at.slice(0,10); counts[d] = (counts[d]||0)+1; });
         const result = [];
         for(let i=29; i>=0; i--) { const d = new Date(); d.setDate(d.getDate()-i); const k = d.toISOString().slice(0,10); result.push({date:k, scans:counts[k]||0}); }
         return res.json(result);
       }
 
       if (action === 'stores') {
-        const { data } = await supabaseAdmin.from('items').select('store_name').not('store_name', 'is', null);
+        const data = db.prepare('SELECT store_name FROM items WHERE store_name IS NOT NULL').all() as any[];
         const counts: any = {};
-        (data || []).forEach((i:any) => { const s = i.store_name?.trim() || 'Desconhecido'; counts[s] = (counts[s]||0)+1; });
+        data.forEach((i:any) => { const s = i.store_name?.trim() || 'Desconhecido'; counts[s] = (counts[s]||0)+1; });
         const sorted = Object.entries(counts).sort((a:any,b:any)=>b[1]-a[1]).slice(0,15).map(([store, scans])=>({store, scans}));
         return res.json(sorted);
       }
 
       if (action === 'avgByCategory') {
-        const { data } = await supabaseAdmin.from('items').select('shelf_category, price, quantity, is_abandoned').gt('price',0);
+        const data = db.prepare('SELECT shelf_category, price, quantity, is_abandoned FROM items WHERE price > 0').all() as any[];
         const cats: any = {};
-        (data || []).forEach((i:any) => {
+        data.forEach((i:any) => {
           const c = i.shelf_category || 'Outros';
           if(!cats[c]) cats[c] = { prices:[], scanCount:0, abandonCount:0 };
-          if(i.is_abandoned) cats[c].abandonCount++;
-          else { cats[c].prices.push(i.price); cats[c].scanCount++; }
+          if(i.is_abandoned) cats[c].abandonCount++; else { cats[c].prices.push(i.price); cats[c].scanCount++; }
         });
         const result = Object.entries(cats).map(([category, c]:any) => ({
-          category,
-          avgPrice: c.prices.length ? c.prices.reduce((a:any,b:any)=>a+b,0)/c.prices.length : 0,
-          scanCount: c.scanCount,
-          abandonmentRate: (c.scanCount+c.abandonCount) > 0 ? Math.round((c.abandonCount/(c.scanCount+c.abandonCount))*100) : 0,
+          category, avgPrice: c.prices.length ? c.prices.reduce((a:any,b:any)=>a+b,0)/c.prices.length : 0,
+          scanCount: c.scanCount, abandonmentRate: (c.scanCount+c.abandonCount) > 0 ? Math.round((c.abandonCount/(c.scanCount+c.abandonCount))*100) : 0,
           avgBasket: 0, storeCount: 1
         })).sort((a,b)=>b.scanCount - a.scanCount);
         return res.json(result);
       }
 
-      // Outras ações retornam vazio no local para não sobrecarregar
       return res.json([]);
 
     } catch (error: any) {

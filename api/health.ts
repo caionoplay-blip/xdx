@@ -4,8 +4,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const cleanEnvVar = (val: string | undefined) => (val || '').replace(/[^\x00-\x7F]/g, "").trim();
   
   const geminiKey = cleanEnvVar(process.env.GEMINI_API_KEY || process.env.API_KEY);
-  const supabaseUrl = cleanEnvVar(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '');
-  const serviceKey = cleanEnvVar(process.env.SUPABASE_SERVICE_ROLE_KEY);
   
   // 1. Testar Gemini
   let geminiStatus = 'not_tested';
@@ -52,18 +50,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (geminiStatus !== 'ok') geminiStatus = 'error';
   }
 
-  // 2. Testar Supabase
+  // 2. Testar SQL (SQLite via better-sqlite3)
   let dbStatus = 'not_tested';
   let dbError = '';
-  if (supabaseUrl && serviceKey) {
-    try {
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(supabaseUrl, serviceKey);
-      const { error } = await supabase.from('items').select('id').limit(1);
-      dbStatus = error ? 'error' : 'ok';
-      if (error) dbError = error.message;
-    } catch (e: any) { dbStatus = 'exception'; dbError = e.message; }
-  }
+  try {
+    const { getDatabase } = await import('./_lib/db.js');
+    const db = getDatabase();
+    const row = db.prepare('SELECT COUNT(*) as c FROM items').get() as any;
+    dbStatus = 'ok';
+    dbError = `items: ${row.c}`;
+  } catch (e: any) { dbStatus = 'error'; dbError = e.message; }
 
   const getFragment = (val: string) => val ? `${val.substring(0, 4)}...${val.substring(val.length - 4)}` : 'none';
 
@@ -75,13 +71,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         fragment: getFragment(geminiKey),
         error: geminiError || undefined 
       },
-      supabase: { 
+      sql: { 
         status: dbStatus, 
-        urlFragment: getFragment(supabaseUrl),
-        keyFragment: getFragment(serviceKey),
         error: dbError || undefined 
       }
     },
-    version: "3.0-b2c-diagnostic-v5"
+    version: "4.0-sql-v1"
   });
 }

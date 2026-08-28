@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
+import { queries } from './_lib/db';
 
 // Helper para B2B: Inferir prateleira/categoria (Consistente com o Dashboard)
 function inferCategory(name: string): string {
@@ -100,42 +100,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const cleanEnvVar = (val: string | undefined) => (val || '').replace(/[^\x00-\x7F]/g, "").trim();
     const apiKey = cleanEnvVar(process.env.GEMINI_API_KEY || process.env.API_KEY || '');
-    const supabaseUrl = cleanEnvVar(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '');
-    const serviceKey = cleanEnvVar(process.env.SUPABASE_SERVICE_ROLE_KEY || '');
     const openaiKey = cleanEnvVar(process.env.OPENAI_API_KEY || '');
-
-    // Inicializa Supabase Admin (para salvar scans automaticamente)
-    const supabaseAdmin = (supabaseUrl && serviceKey) ? createClient(supabaseUrl, serviceKey) : null;
 
     // Extrair base64 se vier com prefixo data:image/jpeg;base64,
     const imageData = image.includes('base64,') ? image.split('base64,')[1] : image;
 
-    async function saveToDatabase(name: string, price: number, engine: string): Promise<string | null> {
-      if (!supabaseAdmin) {
-        console.warn("[DB] Supabase sem chaves de serviço. Dados nao salvos.");
-        return null;
-      }
+    async function saveToDatabase(name: string, price: number, engine: string, _log?: string): Promise<string | null> {
       try {
-        const { data, error } = await supabaseAdmin.from('items').insert([{
+        const id = queries.insertItem({
           name,
           price,
           quantity: 1,
-          store_name: "Mercado XDX (DaaS)", // Default para scans automaticos
+          store_name: "Mercado XDX (SQL)",
           is_session: true,
-          is_abandoned: true, // Começa como abandonado (Inteligência B2B)
+          is_abandoned: true,
           shelf_category: inferCategory(name),
-          raw_text: `Engine: ${engine}`
-        }]).select('id').single();
-        
-        if (error || !data) {
-          console.error("[DB ERROR] Falha ao salvar scan:", error?.message || "Sem ID");
-          return null;
-        }
-        
-        console.log("[DB] Scan salvo com sucesso ID:", data.id);
-        return data.id;
+          raw_text: `Engine: ${engine}`,
+          user_id: 'system', // scan automático sem usuário, usado só para analytics
+        });
+        console.log("[SQL] Scan salvo ID:", id);
+        return id;
       } catch (e) {
-        console.error("[DB CRASH]", e);
+        console.error("[SQL CRASH]", e);
         return null;
       }
     }

@@ -12,3 +12,6 @@ coverage/
 .gradle_home/
 
 .vercel
+data.db
+*.db
+tmp/

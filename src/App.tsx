@@ -7,20 +7,12 @@ import React, { Component, useState, useRef, useEffect } from 'react';
 import { Camera, Trash2, ShoppingCart, Loader2, X, Check, Zap, LogOut, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { scanPriceTag, ProductInfo } from './services/gemini';
-import { createClient } from '@supabase/supabase-js';
 import { AdMob, InterstitialAdPluginEvents, AdLoadInfo } from '@capacitor-community/admob';
 import { Device } from '@capacitor/device';
 import { InstallButton } from './components/InstallPWA';
+import { getUserId, fetchProfile as fetchProfileSql, upsertProfile, deleteProfile, fetchSessionItems, fetchHistoryItems, fetchLastPrice, insertItem, updateItem, deleteItem, deleteSessionItems, finalizeSession } from './services/sqlClient';
 // Garante que InstallButton não seja removido pelo tree-shaking (bug jsx automatic em prod)
 if (typeof window !== 'undefined') (window as any).__XDX_KEEP_INSTALL_BUTTON = InstallButton;
-
-// Initialize Supabase Client
-// @ts-ignore
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-// @ts-ignore
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-// Safely init to avoid hard crash when env vars are missing
-const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
 const XDXLogo = ({ className = "w-12 h-12", onClick }: { className?: string, onClick?: () => void }) => (
   <svg onClick={onClick} viewBox="0 0 100 115" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -188,8 +180,9 @@ function AppContent() {
   const [lifetimeSavings, setLifetimeSavings] = useState(0);
   const [lastPriceInfo, setLastPriceInfo] = useState<{ price: number; store: string } | null>(null);
 
-  // --- AUTH STATE ---
-  const [session, setSession] = useState<any>(null);
+  // --- AUTH STATE (SQL) ---
+  const [userId] = useState<string>(() => getUserId());
+  const [session, setSession] = useState<any>(() => ({ user: { id: getUserId() } }));
   const [profile, setProfile] = useState<any>(null);
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [onboardingData, setOnboardingData] = useState({
@@ -208,59 +201,16 @@ function AppContent() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const sessionRef = useRef<any>(null); // Rastreia a sessão em tempo real sem problemas de closure
-  const [pendingItems, setPendingItems] = useState<any[]>([]); // Itens q aguardam a conexão
+  const sessionRef = useRef<any>({ user: { id: getUserId() } });
+  const [pendingItems, setPendingItems] = useState<any[]>([]);
 
-  // --- INITIALIZATION ---
+  // --- INITIALIZATION (SQL) ---
   useEffect(() => {
-    if (!supabase) {
-      return;
-    }
-    // Timeout de segurança inteligente
-    const connectionTimeout = setTimeout(() => {
-      if (!sessionRef.current) {
-        console.warn("[AUTH] Timeout de conexão atingido.");
-        setMessage({ 
-          type: 'error', 
-          text: 'Conexão lenta detectada. Você pode continuar escaneando, os itens serão salvos no banco assim que o sinal estabilizar.' 
-        });
-        setTimeout(() => setMessage(null), 5000);
-      }
-    }, 8000);
-
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      if (currentSession) {
-        clearTimeout(connectionTimeout);
-        sessionRef.current = currentSession;
-        setSession(currentSession);
-        fetchProfile(currentSession.user.id);
-      } else {
-        console.log("[AUTH] Tentando login anônimo...");
-        supabase.auth.signInAnonymously()
-          .then(({ data, error }) => {
-            clearTimeout(connectionTimeout);
-            if (error) {
-              console.error("[AUTH ERROR]", error);
-            } else if (data.session) {
-              console.log("[AUTH] Login OK:", data.session.user.id);
-              sessionRef.current = data.session;
-              setSession(data.session);
-            }
-          });
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("[AUTH] State:", _event, session?.user.id);
-      sessionRef.current = session;
-      setSession(session);
-      if (session) {
-        fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-        setItems([]);
-      }
-    });
+    const uid = getUserId();
+    sessionRef.current = { user: { id: uid } };
+    setSession({ user: { id: uid } });
+    fetchProfileLocal(uid);
+    fetchItems();
 
     // Forced accessibility styles
     const style = document.createElement('style');
@@ -271,13 +221,12 @@ function AppContent() {
     document.head.appendChild(style);
 
     return () => {
-      subscription.unsubscribe();
       if (document.head.contains(style)) document.head.removeChild(style);
     };
   }, []);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  const fetchProfileLocal = async (userId: string) => {
+    const data = await fetchProfileSql(userId);
     if (data) {
       setProfile(data);
       if (data.full_name) {
@@ -289,31 +238,21 @@ function AppContent() {
       if (!data.full_name) setIsOnboarding(true);
       else setIsOnboarding(false);
     } else {
-      // Create empty profile if none exists (for anonymous users)
-      await supabase.from('profiles').insert([{ id: userId }]);
+      await upsertProfile(userId, { full_name: '', phone: '' });
       setIsOnboarding(true);
     }
   };
 
   const saveOnboarding = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!session) return;
+    const uid = getUserId();
     setAuthLoading(true);
     try {
       const fullName = `${firstName} ${lastName}`.trim();
-      const { error } = await supabase.from('profiles').upsert({
-        id: session.user.id,
-        full_name: fullName,
-        phone: phone
-      });
-
-      if (!error) {
-        fetchProfile(session.user.id);
-        setIsOnboarding(false);
-        setMessage({ type: 'success', text: 'Perfil salvo com sucesso!' });
-      } else {
-        setMessage({ type: 'error', text: error?.message || 'Erro ao salvar perfil. Tente novamente.' });
-      }
+      await upsertProfile(uid, { full_name: fullName, phone: phone });
+      await fetchProfileLocal(uid);
+      setIsOnboarding(false);
+      setMessage({ type: 'success', text: 'Perfil salvo com sucesso!' });
     } catch (err: any) {
       console.error(err);
       setMessage({ type: 'error', text: 'Falha interna ao salvar perfil.' });
@@ -323,30 +262,17 @@ function AppContent() {
   };
 
   const fetchItems = async () => {
-    if (!session) return;
-    const { data, error } = await supabase.from('items')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .eq('is_session', true)
-      .order('created_at', { ascending: false });
-    if (data) {
-      setItems(data.map(i => ({ ...i, rawText: i.raw_text })));
-    }
+    const uid = getUserId();
+    const data = await fetchSessionItems(uid);
+    setItems(data.map(i => ({ ...i, rawText: i.raw_text || i.rawText })));
   };
 
   const fetchRecentTrips = async () => {
-    if (!session) return;
-    const { data } = await supabase.from('items')
-      .select('id, price, quantity, store_name, created_at, trip_id, target_budget')
-      .eq('user_id', session.user.id)
-      .eq('is_session', false)
-      .order('created_at', { ascending: false })
-      .limit(150); // Limite severo de proteção de memória
-    
+    const uid = getUserId();
+    const data = await fetchHistoryItems(uid);
     if (data) {
       let lifetime = 0;
       const tripsMap = new Map();
-      
       data.forEach(item => {
         if (!item.trip_id) return;
         if (!tripsMap.has(item.trip_id)) {
@@ -364,14 +290,12 @@ function AppContent() {
         trip.total += item.price * item.quantity;
         trip.count += item.quantity;
       });
-
       Array.from(tripsMap.values()).forEach((trip: any) => {
          if (trip.target_budget > 0) {
             trip.saved = trip.target_budget - trip.total;
             lifetime += trip.saved;
          }
       });
-
       setLifetimeSavings(lifetime);
       setRecentTrips(Array.from(tripsMap.values()).slice(0, 3));
     }
@@ -380,17 +304,18 @@ function AppContent() {
 
 
   useEffect(() => {
-    if (session) fetchItems();
-  }, [session]);
+    fetchItems();
+  }, []);
 
   useEffect(() => {
     if (showProfileModal) fetchRecentTrips();
   }, [showProfileModal]);
 
   const checkLastPrice = async (name: string) => {
-    if (!session || !name) return;
-    const { data } = await supabase.from('items').select('price, store_name').eq('name', name).order('created_at', { ascending: false }).limit(1);
-    if (data && data.length > 0) setLastPriceInfo({ price: data[0].price, store: data[0].store_name });
+    const uid = getUserId();
+    if (!uid || !name) return;
+    const data = await fetchLastPrice(uid, name);
+    if (data) setLastPriceInfo({ price: data.price, store: data.store_name });
     else setLastPriceInfo(null);
   };
 
@@ -399,8 +324,9 @@ function AppContent() {
   }, [scannedProduct]);
 
   const handleLogout = async () => {
-    if (window.confirm('Ao sair do acesso anônimo, seus dados podem ser perdidos. Continuar?')) {
-      await supabase.auth.signOut();
+    if (window.confirm('Ao sair, seus dados locais serão mantidos mas você verá a tela inicial. Continuar?')) {
+      localStorage.clear();
+      window.location.reload();
     }
   };
 
@@ -514,122 +440,69 @@ function AppContent() {
     }
   };
 
-  // --- SINCRONISMO AUTOMÁTICO ---
-  // Envia itens guardados offline assim que a sessão estabilizar
+  // --- SINCRONISMO REMOVIDO (SQL direto) ---
   useEffect(() => {
-    if (sessionRef.current && pendingItems.length > 0) {
-      const syncPending = async () => {
-        console.log("[SYNC] Sincronizando itens offline...");
-        const toInsert = pendingItems.map(item => ({
-          ...item,
-          user_id: sessionRef.current.user.id
-        }));
-        const { error } = await supabase.from('items').insert(toInsert);
-        if (!error) {
-          setPendingItems([]);
-          fetchItems();
-          setMessage({ type: 'success', text: 'Itens offline sincronizados!' });
-          setTimeout(() => setMessage(null), 3000);
-        }
-      };
-      syncPending();
+    if (pendingItems.length > 0) {
+      // No SQL, itens são salvos direto, não há pendência
+      setPendingItems([]);
     }
-  }, [session, pendingItems.length]);
+  }, [pendingItems.length]);
 
   const trackAbandonment = async (product: any) => {
     if (!product || !product.name) return;
-    
     const abandonmentPayload = {
       name: product.name,
       price: product.price,
       quantity: 1,
       store_name: storeName,
-      user_id: sessionRef.current?.user.id || null,
+      user_id: getUserId(),
       is_session: true,
-      is_abandoned: true, // Campo crucial para o Dashboard B2B
+      is_abandoned: true,
       shelf_category: inferCategory(product.name)
     };
-
-    if (sessionRef.current && supabase) {
-      await supabase.from('items').insert([abandonmentPayload]);
-      console.log("[B2B] Abandono registrado para:", product.name);
-    }
+    await insertItem(abandonmentPayload);
+    console.log("[B2B] Abandono registrado para:", product.name);
   };
 
   const addToCart = async () => {
     if (!scannedProduct) return;
-    
     try {
       const unitWeight = scannedProduct.estimatedWeightG || 100;
       const finalPrice = scannedProduct.isWeightBased 
         ? (scannedProduct.price * (quantity * unitWeight / 1000))
         : scannedProduct.price;
-      
       if (finalPrice <= 0) {
         setMessage({ type: 'error', text: 'Preço inválido (R$ 0,00). Por favor, digite o preço da etiqueta.' });
         return;
       }
-      
       const finalQuantity = scannedProduct.isWeightBased ? 1 : quantity;
       const pName = scannedProduct.name.trim() || 'Produto';
       const displayName = scannedProduct.isWeightBased 
         ? `${pName} (~${((quantity * unitWeight) / 1000).toFixed(3)}kg)`
         : pName;
-
       const itemPayload = {
         name: displayName,
         price: finalPrice,
         quantity: finalQuantity,
         raw_text: scannedProduct.rawText || '',
         store_name: storeName,
-        user_id: sessionRef.current?.user.id || null,
+        user_id: getUserId(),
         target_budget: budgetLimit || null,
         is_session: true,
         is_abandoned: false,
         shelf_category: inferCategory(displayName)
       };
-
-      // SE NÃO HOUVER SESSÃO: Salva no modo Offline (Cache Local)
-      if (!sessionRef.current) {
-        const localItem = { ...itemPayload, id: 'temp-' + Date.now(), is_pending: true };
-        setItems(prev => [localItem, ...prev]);
-        setPendingItems(prev => [...prev, itemPayload]);
-        
-        setScannedProduct(null);
-        setQuantity(1);
-        setLastCapturedImage(null);
-        setMessage({ type: 'success', text: 'Item guardado (Modo Offline)' });
-        setTimeout(() => setMessage(null), 3000);
-        return;
-      }
-
-      // SE HOUVER SESSÃO: Envia direto pro Banco
-      let dbError;
       if (scannedProduct.id) {
-        // ATUALIZA o item que o servidor já criou no momento do Scan
-        const { error } = await supabase.from('items').update({
-          ...itemPayload,
-          is_abandoned: false // Agora foi confirmado!
-        }).eq('id', scannedProduct.id);
-        dbError = error;
+        await updateItem(scannedProduct.id, { ...itemPayload, is_abandoned: false });
       } else {
-        // Fallback: Se por algum motivo o servidor não devolveu ID, faz insert normal
-        const { error } = await supabase.from('items').insert([itemPayload]);
-        dbError = error;
+        await insertItem(itemPayload);
       }
-
-      if (!dbError) {
-        setScannedProduct(null);
-        setQuantity(1);
-        fetchItems();
-        setLastCapturedImage(null);
-        setMessage({ type: 'success', text: 'Item adicionado!' });
-        setTimeout(() => setMessage(null), 2000);
-      } else {
-        console.error("Erro DB:", dbError);
-        setMessage({ type: 'error', text: 'Erro de conexão. Salvando localmente...' });
-        setPendingItems(prev => [...prev, itemPayload]);
-      }
+      setScannedProduct(null);
+      setQuantity(1);
+      fetchItems();
+      setLastCapturedImage(null);
+      setMessage({ type: 'success', text: 'Item adicionado!' });
+      setTimeout(() => setMessage(null), 2000);
     } catch (err: any) {
       console.error("Erro fatal:", err);
       setMessage({ type: 'error', text: 'Ocorreu um erro inesperado.' });
@@ -638,53 +511,34 @@ function AppContent() {
 
   const updateQty = async (id: string, delta: number, current: number) => {
     const next = Math.max(1, current + delta);
-    
-    // Atualiza interface na hora (Optimistic UI)
     setItems(prev => prev.map(item => item.id === id ? { ...item, quantity: next } : item));
-    
-    // Se for item pendente (offline), atualiza na fila de sincronia
     if (id.startsWith('temp-')) {
       setPendingItems(prev => prev.map(item => {
-        const tempId = 'temp-' + (item.created_at || ''); // lógica de ID temporário
         return item.id === id ? { ...item, quantity: next } : item;
       }));
       return;
     }
-
-    // Se tiver sessão, tenta no banco
-    if (sessionRef.current && supabase) {
-      const { error } = await supabase.from('items').update({ quantity: next }).eq('id', id);
-      if (error) console.error("Erro ao atualizar qtd no banco:", error);
-    }
+    await updateItem(id, { quantity: next });
   };
 
   const removeItem = async (id: string) => {
-    // Remove da tela na hora
     setItems(prev => prev.filter(item => item.id !== id));
-    
-    if (id.startsWith('temp-')) {
-      // Se for local, só remove do cache
-      return;
-    }
-
-    if (sessionRef.current && supabase) {
-      const { error } = await supabase.from('items').delete().eq('id', id);
-      if (error) console.error("Erro ao remover item do banco:", error);
-    }
+    if (id.startsWith('temp-')) return;
+    await deleteItem(id);
   };
 
   const deleteAccount = async () => {
-    if (!session) return;
+    const uid = getUserId();
     const confirmed = window.confirm('⚠️ Tem certeza? Todos os seus dados (perfil, compras e histórico) serão PERMANENTEMENTE deletados. Esta ação não pode ser desfeita.');
     if (!confirmed) return;
     setAuthLoading(true);
     try {
-      await supabase.from('items').delete().eq('user_id', session.user.id);
-      await supabase.from('profiles').delete().eq('id', session.user.id);
-      await supabase.auth.signOut();
+      await deleteProfile(uid);
       localStorage.removeItem('xdx_terms_accepted');
+      localStorage.removeItem('xdx_user_id');
       setShowProfileModal(false);
       setMessage({ type: 'success', text: 'Conta e dados excluídos com sucesso.' });
+      setTimeout(() => window.location.reload(), 1000);
     } catch (err: any) {
       setMessage({ type: 'error', text: 'Erro ao excluir conta. Tente novamente.' });
     } finally {
@@ -695,40 +549,20 @@ function AppContent() {
   const finalizePurchase = async () => {
     if (items.length === 0) return;
     if (!window.confirm('Deseja finalizar esta compra e salvar no seu histórico?')) return;
-    
     setAuthLoading(true);
     try {
-      if (!sessionRef.current) {
-        // Modo Offline: Limpa a lista e avisa que não pôde salvar no histórico
-        setItems([]);
-        setPendingItems([]);
-        setHasSetStore(false);
-        setBudgetLimit(null);
-        setMessage({ type: 'error', text: 'Compra concluída localmente. (Sem conexão para salvar no histórico)' });
-        setTimeout(() => setMessage(null), 5000);
-        return;
-      }
-
+      const uid = getUserId();
       const tripId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
           const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
           return v.toString(16);
       });
-
-      const { error } = await supabase.from('items')
-        .update({ is_session: false, trip_id: tripId })
-        .eq('user_id', sessionRef.current.user.id)
-        .eq('is_session', true);
-
-      if (!error) {
-        setItems([]);
-        setHasSetStore(false);
-        setBudgetLimit(null);
-        fetchRecentTrips();
-        setMessage({ type: 'success', text: 'Compra finalizada e salva com sucesso!' });
-        setTimeout(() => setMessage(null), 4000);
-      } else {
-        throw error;
-      }
+      await finalizeSession(uid, tripId);
+      setItems([]);
+      setHasSetStore(false);
+      setBudgetLimit(null);
+      fetchRecentTrips();
+      setMessage({ type: 'success', text: 'Compra finalizada e salva com sucesso!' });
+      setTimeout(() => setMessage(null), 4000);
     } catch (err: any) {
       console.error(err);
       setMessage({ type: 'error', text: 'Erro ao salvar. Verifique sua rede e tente novamente.' });
@@ -739,46 +573,17 @@ function AppContent() {
 
   const clearList = async () => {
     if (!window.confirm('Limpar lista atual? (Os itens não serão salvos no histórico)')) return;
-    
-    // Limpeza instantânea da tela
     setItems([]);
     setPendingItems([]);
     setHasSetStore(false);
     setBudgetLimit(null);
-
-    if (sessionRef.current && supabase) {
-      const { error } = await supabase.from('items')
-        .delete()
-        .eq('user_id', sessionRef.current.user.id)
-        .eq('is_session', true);
-      
-      if (error) console.error("Erro ao limpar banco:", error);
-    }
+    const uid = getUserId();
+    await deleteSessionItems(uid);
   };
 
   const total = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
 
-  // --- RENDER HELPERS ---
-  if (!supabase) return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-      <div className="w-full max-w-md space-y-8 p-10 bg-red-50 rounded-[3rem] border-2 border-red-100 shadow-xl">
-        <XDXLogo className="w-24 h-24 mx-auto mb-4 opacity-50 grayscale" />
-        <h2 className="text-3xl font-black text-red-600 uppercase italic tracking-tighter">Erro de Configuração</h2>
-        <div className="space-y-4 text-left">
-          <p className="text-gray-600 font-bold text-sm">O aplicativo não conseguiu carregar as chaves do Supabase. Verifique seu arquivo <code className="bg-white px-2 py-1 rounded">.env</code>:</p>
-          <div className="text-xs font-mono bg-white p-4 rounded-2xl border border-red-100 space-y-2">
-            <p className="text-red-500 line-through">SUPABASE_URL=...</p>
-            <p className="text-green-600 font-bold">VITE_SUPABASE_URL=...</p>
-            <p className="text-red-500 line-through mt-2">SUPABASE_ANON_KEY=...</p>
-            <p className="text-green-600 font-bold">VITE_SUPABASE_ANON_KEY=...</p>
-          </div>
-          <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest text-center mt-6">O prefixo VITE_ é obrigatório para o frontend.</p>
-        </div>
-      </div>
-    </div>
-  );
-
-
+  // --- RENDER HELPERS (SQL - sem necessidade de Supabase) ---
 
   return (
     <div className="min-h-screen bg-slate-50 text-gray-900 pb-[calc(8rem+env(safe-area-inset-bottom))]">
@@ -1156,7 +961,7 @@ function AppContent() {
                 <p className="text-[11px] font-black uppercase tracking-widest text-[#003d4d]">🔒 Privacidade e LGPD</p>
                 <ul className="list-disc pl-4 space-y-1.5 text-xs">
                   <li>Coletamos: nome, telefone e histórico de compras para personalizar sua experiência.</li>
-                  <li>Seus dados são armazenados com segurança no Supabase e <strong>nunca vendidos a terceiros</strong>.</li>
+                  <li>Seus dados são armazenados com segurança em SQL local e <strong>nunca vendidos a terceiros</strong>.</li>
                   <li>Você pode <strong>excluir sua conta e todos os seus dados</strong> a qualquer momento no menu do seu perfil.</li>
                   <li>Em conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong>.</li>
                   <li>Dúvidas: <strong>privacidade@xdxglobal.com</strong></li>
