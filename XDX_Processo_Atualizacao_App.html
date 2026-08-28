@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processo de Atualização - XDX Mercado</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f9fafb;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        h1 {
+            color: #111827;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #1f2937;
+            margin-top: 30px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #374151;
+        }
+        code {
+            background-color: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #db2777;
+        }
+        pre {
+            background-color: #1f2937;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: monospace;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+        .alert-warning {
+            background-color: #fffbeb;
+            border-left-color: #f59e0b;
+            color: #92400e;
+        }
+        .alert-info {
+            background-color: #eff6ff;
+            border-left-color: #3b82f6;
+            color: #1e40af;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        
+        /* Regras para Impressão em PDF */
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+            }
+            pre {
+                border: 1px solid #e5e7eb;
+                background-color: #f9fafb;
+                color: #111827;
+            }
+            code {
+                color: #111827;
+            }
+            .alert-warning {
+                border: 1px solid #f59e0b;
+            }
+            .alert-info {
+                border: 1px solid #3b82f6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Processo de Atualização do XDX - Mercado 🚀</h1>
+        <p>Este guia descreve o passo a passo completo e seguro para gerar e enviar uma nova atualização do aplicativo para a <strong>Google Play Console</strong> sempre que você fizer modificações no código.</p>
+
+        <h2>1. Incrementar a Versão do App</h2>
+        <p>A Google Play exige que toda atualização tenha um número de versão maior que a versão anterior.</p>
+        
+        <div class="alert alert-warning">
+            <strong>⚠️ Importante:</strong> A Google Play rejeitará seu aplicativo se você tentar enviar uma atualização com o mesmo <code>versionCode</code> de uma versão anterior.
+        </div>
+
+        <p>Abra o arquivo <code>android/app/build.gradle</code> e procure pelo bloco <code>defaultConfig</code>:</p>
+<pre><code>defaultConfig {
+    applicationId "br.com.xdxmercado"
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    
+    // 👇 AUMENTE ESTES DOIS VALORES
+    versionCode 2      // Sempre some +1 inteiro (ex: se tava 1, vai pra 2, depois 3...)
+    versionName "1.0.1" // Aumente a versão pública (ex: "1.0.0" -> "1.0.1" -> "1.1.0")
+}</code></pre>
+
+        <h2>2. Compilar e Sincronizar o Código Web</h2>
+        <p>Depois de alterar o seu código (React, CSS, etc.) e subir a versão, você precisa gerar a versão final web e copiar para dentro do projeto Android.</p>
+        <p>Abra o terminal na pasta raiz (<code>xdx-mercado</code>) e rode o atalho que já está no seu <code>package.json</code>:</p>
+<pre><code>npm run mobile:build</code></pre>
+        <p><strong>O que isso faz:</strong> Esse comando roda <code>vite build</code> (cria os arquivos minimizados) e depois <code>npx cap sync</code> (injeta o código novo dentro da pasta <code>/android</code>).</p>
+
+        <h2>3. Gerar o Pacote Assinado (.aab)</h2>
+        <p>A Google Play exige o formato <strong>Android App Bundle (.aab)</strong> assinado com a sua chave criptográfica (<code>xdx-production.keystore</code>).</p>
+
+        <h3>Via Android Studio (Recomendado e mais visual):</h3>
+        <ol>
+            <li>Abra o <strong>Android Studio</strong>.</li>
+            <li>Clique em <strong>Open</strong> e selecione apenas a pasta <code>android/</code> do seu projeto.</li>
+            <li>Aguarde o gradle carregar (barra de progresso no canto inferior direito).</li>
+            <li>No menu superior, vá em <strong>Build > Generate Signed Bundle / APK...</strong></li>
+            <li>Escolha a opção <strong>Android App Bundle</strong> e clique em Next.</li>
+            <li>Escolha o seu arquivo <code>.keystore</code> gerado anteriormente e insira a senha.</li>
+            <li>Selecione a variante de <strong>release</strong> e clique em Finish.</li>
+            <li>O arquivo final <code>.aab</code> será gerado na pasta <code>android/app/release/</code>.</li>
+        </ol>
+
+        <h3>Alternativa: Via Terminal</h3>
+        <p>Se a senha já estiver configurada internamente no <code>build.gradle</code>, você pode gerar direto pelo terminal:</p>
+<pre><code>cd android
+./gradlew bundleRelease</code></pre>
+
+        <h2>4. Enviar para a Google Play Console</h2>
+        <ol>
+            <li>Acesse o <a href="https://play.google.com/console" target="_blank">Google Play Console</a>.</li>
+            <li>Selecione o aplicativo <strong>XDX - Mercado</strong>.</li>
+            <li>No menu esquerdo, vá em <strong>Produção</strong> (ou em <strong>Testes Internos</strong>, se quiser testar antes de soltar para todo mundo).</li>
+            <li>Clique em <strong>Criar nova versão</strong> (Create new release).</li>
+            <li>Arraste e solte o arquivo <code>.aab</code> (que foi gerado no Passo 3) para a área de Upload.</li>
+            <li><strong>Notas de Versão:</strong> Escreva o que mudou nessa nova versão para os usuários lerem na loja.</li>
+            <li>Clique em <strong>Avançar / Salvar</strong>, revise as informações e depois em <strong>Enviar para revisão</strong>.</li>
+        </ol>
+
+        <div class="alert alert-info">
+            <strong>💡 Boas Práticas de Git (Commit)</strong><br>
+            Assim que a versão for aprovada e enviada, não se esqueça de rodar os comandos do Git no terminal para salvar o novo número de versão do seu código no GitHub:<br><br>
+            <code>git add .</code><br>
+            <code>git commit -m "chore: atualiza versão para 1.0.1"</code><br>
+            <code>git push</code>
+        </div>
+    </div>
+</body>
+</html>

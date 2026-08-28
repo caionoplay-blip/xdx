@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentação Técnica Administrativa - XDX Mercado</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #334155;
+            --accent: #3b82f6;
+            --bg-light: #f8fafc;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--primary);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f1f5f9;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        .header p {
+            color: var(--secondary);
+            font-size: 1.1em;
+        }
+        h2 {
+            color: var(--accent);
+            margin-top: 40px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+            font-size: 1.8em;
+        }
+        h3 {
+            color: var(--secondary);
+            font-size: 1.3em;
+            margin-top: 25px;
+        }
+        p {
+            margin-bottom: 16px;
+        }
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .tech-card {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .tech-card h4 {
+            margin-top: 0;
+            color: var(--primary);
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 10px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .flow-step {
+            background-color: var(--bg-light);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        @media print {
+            body { background-color: white; padding: 0; }
+            .container { box-shadow: none; padding: 0; }
+            .tech-grid { display: block; }
+            .tech-card { margin-bottom: 20px; break-inside: avoid; }
+            .flow-step { break-inside: avoid; border-left: 2px solid var(--accent); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Documentação Técnica Administrativa</h1>
+        <p><strong>Projeto:</strong> XDX - Mercado</p>
+        <p><strong>Descrição:</strong> Guia de Arquitetura, Tecnologias e Fluxo de Dados</p>
+        <p><strong>Data de Geração:</strong> Abril de 2026</p>
+    </div>
+
+    <h2>1. Visão Geral do Sistema</h2>
+    <p>O <strong>XDX - Mercado</strong> é um ecossistema inteligente de gestão de inventário e captura de dados focado no segmento de supermercados (B2B). A aplicação principal é construída sob uma arquitetura de "Web App Empacotado" (Hybrid Mobile App), garantindo que o mesmo código fonte atenda tanto usuários de navegadores quanto aplicativos nativos (Android/iOS).</p>
+
+    <h2>2. Stack Tecnológico (Tecnologias Utilizadas)</h2>
+    <p>A arquitetura foi escolhida para maximizar a agilidade de desenvolvimento, reduzir a manutenção e garantir alta escalabilidade.</p>
+
+    <div class="tech-grid">
+        <div class="tech-card">
+            <h4>🎨 Frontend (Interface Visual)</h4>
+            <ul>
+                <li><strong>React 19:</strong> Biblioteca central para construção das interfaces (UI).</li>
+                <li><strong>Tailwind CSS 4:</strong> Framework utilitário para estilização rápida, responsiva e com um design moderno.</li>
+                <li><strong>Vite 6:</strong> Motor de compilação ultra-rápido para desenvolvimento e build de produção.</li>
+                <li><strong>Lucide React:</strong> Biblioteca de ícones vetoriais.</li>
+            </ul>
+        </div>
+        <div class="tech-card">
+            <h4>📱 Mobile (Container Nativo)</h4>
+            <ul>
+                <li><strong>Capacitor 6:</strong> O "motor" que transforma o site React em um aplicativo nativo para Android e iOS, dando acesso a câmera e hardware.</li>
+                <li><strong>Capacitor AdMob:</strong> Plugin integrado para futura monetização via anúncios, se necessário.</li>
+            </ul>
+        </div>
+        <div class="tech-card">
+            <h4>🧠 Inteligência Artificial (Core)</h4>
+            <ul>
+                <li><strong>Google GenAI (Gemini):</strong> Motor principal de inteligência computacional para reconhecimento ótico e análise semântica das imagens das gôndolas e etiquetas.</li>
+                <li><strong>OpenAI:</strong> API secundária (fallback) e suporte lógico para processamento avançado de texto.</li>
+            </ul>
+        </div>
+        <div class="tech-card">
+            <h4>☁️ Backend, Banco e Infra</h4>
+            <ul>
+                <li><strong>Supabase:</strong> Banco de dados Postgres em nuvem, cuidando da persistência dos dados (inventário, histórico, logs) em tempo real.</li>
+                <li><strong>Vercel (Express/Node):</strong> Infraestrutura Serverless para rodar funções backend de segurança e APIs (`/api/health`, `/api/scan`).</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>3. Estrutura de Arquivos e Componentes</h2>
+    <p>O repositório está organizado para separar claramente o código do aplicativo (Frontend) e as configurações de hardware (Mobile).</p>
+    <ul>
+        <li><code>/src/App.tsx</code>: O coração da interface do usuário. Contém o painel principal, a lógica de interação do usuário com a câmera e a exibição do dashboard gerencial.</li>
+        <li><code>/src/services/gemini.ts</code>: Módulo isolado de conexão com o motor de Inteligência Artificial. Toda chamada ao Google GenAI passa por aqui para segurança.</li>
+        <li><code>/api/</code>: Contém as funções serverless (Node.js/TypeScript) que podem rodar isoladas da interface para realizar processamentos pesados no servidor.</li>
+        <li><code>/android/</code> e <code>/ios/</code>: Pastas nativas geradas pelo Capacitor. Contêm as configurações específicas para as lojas (Google Play e App Store).</li>
+        <li><code>capacitor.config.ts</code>: Configuração da "ponte" entre o código Web (React) e o código Nativo (Android/iOS).</li>
+    </ul>
+
+    <h2>4. Fluxo de Dados Operacional</h2>
+    <p>Para fins administrativos, este é o caminho que um dado percorre desde o momento em que o fiscal do mercado tira uma foto até aparecer no dashboard:</p>
+    
+    <div class="flow-step">
+        <strong>1. Captura (Capacitor/React):</strong> O usuário utiliza o aplicativo XDX para fotografar a prateleira. O Capacitor acessa o hardware da câmera nativa do celular.
+    </div>
+    <div class="flow-step">
+        <strong>2. Processamento (Google GenAI):</strong> A imagem é enviada para o serviço de IA. O modelo de visão computacional varre a imagem identificando preços, nomes de produtos e etiquetas de validade.
+    </div>
+    <div class="flow-step">
+        <strong>3. Estruturação (Node/TypeScript):</strong> A inteligência retorna um texto/JSON bruto. O código formata os dados limpos, cruza os identificadores com o cadastro (caso existam) e prepara os pacotes de banco de dados.
+    </div>
+    <div class="flow-step">
+        <strong>4. Persistência (Supabase):</strong> Os dados limpos são salvos nas tabelas seguras do Supabase na nuvem.
+    </div>
+    <div class="flow-step">
+        <strong>5. Apresentação (Dashboard):</strong> A interface do painel financeiro consome os dados do Supabase e atualiza o gráfico em tempo real para os gestores.
+    </div>
+
+    <h2>5. Escalabilidade e Segurança</h2>
+    <h3>Segurança</h3>
+    <p>O ambiente é protegido por variáveis de ambiente (<code>.env</code>). Arquivos sensíveis como chaves do Supabase, API Keys do Gemini/OpenAI e chaves de produção (<code>xdx-production.keystore</code>) <strong>não</strong> são enviados ao versionamento do GitHub, sendo ignorados pelo <code>.gitignore</code>.</p>
+
+    <h3>Escalabilidade (Plano de Crescimento)</h3>
+    <p>Por utilizar serviços gerenciados (Supabase e Vercel), a aplicação não requer gerenciamento de servidores (Linux/VPS). O banco de dados Postgres é capaz de suportar milhões de linhas de inventário. Caso a volumetria de imagens escaneadas suba substancialmente, o único ajuste necessário será realizar <em>upgrade</em> do plano de cota das APIs de IA (Google) e largura de banda do Supabase.</p>
+
+    <hr style="margin: 40px 0; border: none; border-top: 1px solid #cbd5e1;">
+    <p style="text-align: center; color: #64748b; font-size: 0.9em;">Documento gerado confidencialmente para equipe de administração e engenharia do XDX - Mercado.</p>
+
+</div>
+
+</body>
+</html>

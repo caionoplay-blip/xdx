@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Negócios e Viabilidade - XDX Mercado</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #475569;
+            --accent: #10b981; /* Verde (Economia) */
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-light: #f8fafc;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+            color: var(--primary);
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f1f5f9;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 60px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+            padding-bottom: 30px;
+            margin-bottom: 50px;
+        }
+        .header h1 {
+            font-size: 2.8em;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+        .header h2 {
+            color: var(--secondary);
+            font-weight: 400;
+            font-size: 1.4em;
+            margin-top: 0;
+            border: none;
+        }
+        h2 {
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            margin-top: 50px;
+            font-size: 1.8em;
+        }
+        h3 {
+            color: var(--primary);
+            font-size: 1.3em;
+            margin-top: 30px;
+        }
+        p {
+            color: var(--secondary);
+            margin-bottom: 16px;
+        }
+        .box {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border);
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            font-size: 0.95em;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background-color: var(--bg-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        td {
+            color: var(--secondary);
+        }
+        .highlight {
+            background-color: #ecfdf5;
+            border-left: 4px solid var(--accent);
+            padding: 15px 20px;
+            font-style: italic;
+            color: #065f46;
+        }
+        .swot {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .swot-card {
+            padding: 20px;
+            border-radius: 8px;
+            border-top: 4px solid;
+        }
+        .swot-s { background: #ecfdf5; border-color: var(--success); }
+        .swot-w { background: #fffbeb; border-color: var(--warning); }
+        .swot-o { background: #eff6ff; border-color: #3b82f6; }
+        .swot-t { background: #fef2f2; border-color: var(--danger); }
+        
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #94a3b8;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+
+        @media print {
+            body { background-color: white; padding: 0; }
+            .container { box-shadow: none; padding: 0; }
+            .grid-2, .swot { display: block; }
+            .box, .swot-card { margin-bottom: 20px; break-inside: avoid; }
+            table { break-inside: auto; }
+            tr { break-inside: avoid; break-after: auto; }
+            h2 { page-break-after: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>XDX - Mercado</h1>
+        <h2>Plano de Negócios & Viabilidade Econômica</h2>
+        <p style="color: #64748b; font-size: 0.9em; margin-top: 20px;">Inspirado no IBM Shopping Buddy (2005) - Edição 2026</p>
+    </div>
+
+    <h2>1. Sumário Executivo</h2>
+    <p>O <strong>XDX - Mercado</strong> é um aplicativo móvel voltado para o consumidor final (B2C) e focado no controle financeiro durante a jornada de compras em supermercados. Idealizado a partir do conceito visionário do projeto <em>IBM Shopping Buddy</em> (2005), o XDX empodera o usuário ao permitir que ele escaneie os produtos e preços enquanto os coloca no carrinho físico. Dessa forma, o consumidor sabe exatamente o valor total da sua compra antes mesmo de chegar ao caixa, eliminando surpresas financeiras, permitindo a gestão inteligente do orçamento ("budget") e promovendo a economia familiar.</p>
+    
+    <div class="highlight">
+        Nossa Missão: Fim do "susto" no caixa. Empoderar o consumidor moderno com previsibilidade financeira em tempo real durante suas compras de supermercado.
+    </div>
+
+    <h2>2. Análise de Mercado e a Dor do Consumidor</h2>
+    <div class="grid-2">
+        <div>
+            <h3>A Dor (O Problema)</h3>
+            <p>Com a inflação flutuante e o orçamento doméstico cada vez mais apertado, ir ao supermercado tornou-se uma experiência geradora de ansiedade. O consumidor enche o carrinho mentalmente somando os valores, mas:</p>
+            <ul>
+                <li>Esquece os centavos ou se perde na soma.</li>
+                <li>Chega ao caixa e o valor é 20% a 30% maior do que o esperado.</li>
+                <li>Sente vergonha ou desconforto ao ter que "devolver" produtos na frente do caixa por falta de saldo.</li>
+            </ul>
+        </div>
+        <div>
+            <h3>A Solução (XDX-Mercado)</h3>
+            <p>O app atua como um assistente de carrinho virtual no próprio smartphone do usuário:</p>
+            <ul>
+                <li><strong>Scan Inteligente:</strong> Lê códigos de barras ou etiquetas de preços através da câmera (usando tecnologias modernas e IA).</li>
+                <li><strong>Limite de Gastos:</strong> O usuário define o teto (ex: R$ 300) e o app alerta quando o limite está próximo.</li>
+                <li><strong>Transparência Total:</strong> Controle total sobre as compras, sem surpresas no checkout.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>3. Modelo de Negócios e Monetização</h2>
+    <p>O XDX utiliza um modelo de negócio híbrido <strong>Freemium B2C</strong> (voltado ao consumidor final) e <strong>Retail Media B2B2C</strong> (parcerias com redes supermercadistas e marcas).</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Fonte de Receita</th>
+                <th>Descrição do Modelo</th>
+                <th>Potencial de Retorno</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>App Freemium (B2C)</strong></td>
+                <td>App gratuito para uso básico. Assinatura "Premium" (ex: R$ 4,90/mês) para histórico ilimitado, compartilhamento de listas em família e exportação de gastos.</td>
+                <td>Alto volume. Ideal para cobrir custos operacionais via microtransações e ads.</td>
+            </tr>
+            <tr>
+                <td><strong>Retail Media & Ads (Marcas)</strong></td>
+                <td>Marcas podem pagar para exibir cupons e sugestões de produtos dentro do app baseando-se no que o cliente está comprando no momento.</td>
+                <td>Margens altíssimas. Anúncios super-direcionados no momento de decisão de compra.</td>
+            </tr>
+            <tr>
+                <td><strong>Parcerias B2B (Supermercados)</strong></td>
+                <td>Integração (White Label ou via API) com programas de fidelidade dos supermercados para oferecer o app como benefício ou evitar devoluções no caixa ("abandono de carrinho").</td>
+                <td>Receita recorrente e corporativa por licenciamento ou integração de catálogo.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>4. Estrutura de Custos</h2>
+    <p>A arquitetura do XDX foi pensada para ser extremamente eficiente e barata, suportando milhões de usuários simultâneos com infraestrutura Serverless.</p>
+
+    <div class="box">
+        <h3>Custos Fixos (Infraestrutura Nuvem)</h3>
+        <ul>
+            <li><strong>Banco de Dados (Supabase):</strong> US$ 25 mensais na fase inicial, escalando conforme volume de leitura/escrita.</li>
+            <li><strong>Hospedagem e APIs (Vercel):</strong> US$ 20 mensais.</li>
+            <li><strong>Licenças Mobile:</strong> Apple ($99/ano) e Google Play ($25 taxa única).</li>
+        </ul>
+        
+        <h3>Custos Variáveis (Cloud & AI)</h3>
+        <ul>
+            <li><strong>Uso da IA (Google Gemini API):</strong> Cobrado por milhão de tokens. Devido à leitura rápida e em tempo real, o custo por usuário é de frações de centavos. O uso de APIs de códigos de barras (gratuitas nativas dos aparelhos) reduz esse custo em 95%.</li>
+        </ul>
+    </div>
+
+    <h2>5. Estudo de Viabilidade Econômica e Escalabilidade</h2>
+    <p>Simulação focada na monetização via publicidade direcionada (Ads) e usuários Premium no primeiro ano de tração.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Indicador</th>
+                <th>Cenário (Mês 12 - 50k Usuários Ativos)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Receita Premium (5% convertem a R$ 4,90/mês)</strong></td>
+                <td>R$ 12.250,00</td>
+            </tr>
+            <tr>
+                <td><strong>Receita Ads/Cupons (Estimativa R$ 1,00/usuário/mês)</strong></td>
+                <td>R$ 50.000,00</td>
+            </tr>
+            <tr>
+                <td>Custo Total Operacional (Nuvem, APIs e Servidores)</td>
+                <td>- R$ 8.000,00</td>
+            </tr>
+            <tr>
+                <td><strong>Lucro Operacional Bruto Mensal</strong></td>
+                <td><strong>R$ 54.250,00</strong></td>
+            </tr>
+        </tbody>
+    </table>
+    <p><em>*Nota: O modelo focado em B2C exige alto investimento inicial em Marketing (CAC) para atrair volume de massa (Growth Hacking).</em></p>
+
+    <h2>6. Análise SWOT (Matriz FOFA)</h2>
+    <div class="swot">
+        <div class="swot-card swot-s">
+            <h4 style="color: var(--success); margin-top:0;">Forças (Strengths)</h4>
+            <ul>
+                <li>Apelo universal: "Todo mundo quer economizar".</li>
+                <li>Facilidade de uso (usabilidade móvel moderna).</li>
+                <li>Histórico do IBM Shopping Buddy prova a eficácia do conceito.</li>
+            </ul>
+        </div>
+        <div class="swot-card swot-w">
+            <h4 style="color: var(--warning); margin-top:0;">Fraquezas (Weaknesses)</h4>
+            <ul>
+                <li>Exige que o usuário tenha disciplina para escanear todos os itens.</li>
+                <li>Bateria do smartphone pode descarregar durante compras longas.</li>
+            </ul>
+        </div>
+        <div class="swot-card swot-o">
+            <h4 style="color: #3b82f6; margin-top:0;">Oportunidades (Opportunities)</h4>
+            <ul>
+                <li>Inflação alta e instabilidade econômica aumentam o desejo de controle financeiro.</li>
+                <li>Crescimento do "Retail Media" (redes de anúncios dentro do varejo).</li>
+            </ul>
+        </div>
+        <div class="swot-card swot-t">
+            <h4 style="color: var(--danger); margin-top:0;">Ameaças (Threats)</h4>
+            <ul>
+                <li>Fricção de uso (o usuário esquecer de escanear algo e a soma dar errado no final).</li>
+                <li>Grandes redes (Carrefour, Pão de Açúcar) embutirem esse recurso nos seus próprios aplicativos.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>7. Estratégia de Crescimento (Go-to-Market)</h2>
+    <ol>
+        <li><strong>Growth Marketing Orgânico:</strong> Parcerias com influenciadores digitais de "Educação Financeira", "Donas de Casa" e perfis de "Caçadores de Ofertas" no Instagram e TikTok.</li>
+        <li><strong>App Store Optimization (ASO):</strong> Otimização extrema para buscas como "lista de compras", "controle de gastos supermercado" e "economizar no mercado".</li>
+        <li><strong>Programa de Indicação:</strong> Usuários que indicarem o app ganham meses gratuitos do plano Premium.</li>
+    </ol>
+
+    <div class="footer">
+        Confidencial. Elaborado por Inteligência Estratégica XDX em Abril de 2026.<br>
+        Inspirado no IBM Shopping Buddy (2005).
+    </div>
+</div>
+
+</body>
+</html>

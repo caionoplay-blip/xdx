@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XĐX Mercado — Documentação Técnica e Estudo de Viabilidade v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal: #003d4d;
+  --teal-light: #005566;
+  --emerald: #10b981;
+  --emerald-bg: #f0fdf4;
+  --emerald-border: #bbf7d0;
+  --gold: #d97706;
+  --gold-bg: #fffbeb;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --blue: #1d4ed8;
+  --blue-bg: #eff6ff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --bg: #f8fafc;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  color: var(--text);
+  background: #fff;
+  line-height: 1.65;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ── PRINT ── */
+@media print {
+  .no-print { display: none !important; }
+  .page-break { page-break-before: always; }
+  body { font-size: 12px; }
+  .cover { min-height: auto; padding: 60px 60px 40px; }
+  section { padding: 28px 60px; }
+}
+@page { margin: 0; size: A4; }
+
+/* ── PRINT BUTTON ── */
+.print-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  background: var(--teal); color: #fff;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 24px;
+  font-size: 12px; font-weight: 700;
+}
+.print-btn {
+  background: var(--emerald); color: #fff; border: none;
+  border-radius: 8px; padding: 8px 20px; font-size: 12px; font-weight: 800;
+  cursor: pointer; font-family: inherit; letter-spacing: 0.5px;
+}
+.print-btn:hover { opacity: 0.85; }
+.content { margin-top: 44px; }
+
+/* ── COVER ── */
+.cover {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--teal) 0%, #005566 50%, #007788 100%);
+  color: #fff;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 80px 80px 60px;
+  position: relative; overflow: hidden;
+}
+.cover::before {
+  content: '';
+  position: absolute; top: -100px; right: -100px;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: rgba(16,185,129,0.1);
+  pointer-events: none;
+}
+.cover::after {
+  content: '';
+  position: absolute; bottom: -80px; left: -80px;
+  width: 350px; height: 350px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  pointer-events: none;
+}
+.cover-tag {
+  display: inline-block;
+  background: rgba(16,185,129,0.25);
+  color: var(--emerald);
+  border: 1px solid rgba(16,185,129,0.4);
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 11px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 2px;
+  margin-bottom: 28px;
+}
+.cover-logo {
+  font-size: 72px; font-weight: 900;
+  letter-spacing: -4px; line-height: 1;
+  margin-bottom: 8px;
+}
+.cover-logo span { color: var(--emerald); }
+.cover-tagline {
+  font-size: 20px; font-weight: 600;
+  opacity: 0.7; margin-bottom: 36px;
+  letter-spacing: -0.3px;
+}
+.cover-desc {
+  font-size: 15px; max-width: 520px;
+  opacity: 0.85; line-height: 1.7;
+  margin-bottom: 48px;
+}
+.cover-kpis {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+  margin-bottom: 60px;
+}
+.cover-kpi {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px; padding: 20px;
+}
+.cover-kpi-value { font-size: 26px; font-weight: 900; letter-spacing: -1px; color: var(--emerald); }
+.cover-kpi-label { font-size: 11px; opacity: 0.6; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+.cover-footer {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  padding-top: 24px;
+}
+.cover-footer-left { font-size: 12px; opacity: 0.5; }
+.cover-footer-right { font-size: 11px; opacity: 0.4; text-align: right; }
+
+/* ── SECTIONS ── */
+section { padding: 56px 80px; }
+section:nth-child(even) { background: var(--bg); }
+
+.section-tag {
+  display: inline-block;
+  font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 2px;
+  padding: 4px 12px; border-radius: 5px;
+  margin-bottom: 12px;
+}
+.tag-emerald { background: var(--emerald-bg); color: var(--emerald); border: 1px solid var(--emerald-border); }
+.tag-gold { background: var(--gold-bg); color: var(--gold); border: 1px solid #fed7aa; }
+.tag-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid #bfdbfe; }
+.tag-red { background: var(--red-bg); color: var(--red); border: 1px solid #fecaca; }
+.tag-gray { background: #f1f5f9; color: var(--muted); border: 1px solid var(--border); }
+
+h2 {
+  font-size: 28px; font-weight: 900; color: var(--teal);
+  letter-spacing: -0.8px; margin-bottom: 6px; line-height: 1.2;
+}
+h3 { font-size: 15px; font-weight: 800; color: var(--teal); margin: 24px 0 10px; }
+p { margin-bottom: 12px; color: #334155; }
+
+/* ── TABLES ── */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12.5px; }
+th {
+  background: var(--teal); color: #fff;
+  padding: 10px 14px; text-align: left; font-weight: 700; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border: none; }
+tr:hover td { background: #f8fafc; }
+.td-em { font-weight: 800; color: var(--teal); }
+.td-green { color: #059669; font-weight: 700; }
+.td-gold { color: var(--gold); font-weight: 700; }
+.td-red { color: var(--red); font-weight: 700; }
+.td-muted { color: var(--muted); }
+
+/* ── CALLOUTS ── */
+.callout {
+  border-radius: 12px; padding: 18px 22px; margin: 20px 0;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.callout.green { background: var(--emerald-bg); border-left: 4px solid var(--emerald); }
+.callout.gold { background: var(--gold-bg); border-left: 4px solid var(--gold); }
+.callout.blue { background: var(--blue-bg); border-left: 4px solid var(--blue); }
+.callout.red { background: var(--red-bg); border-left: 4px solid var(--red); }
+.callout-icon { font-size: 20px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.callout-text { font-size: 13px; font-weight: 500; }
+.callout-text strong { color: var(--teal); }
+
+/* ── CODE BLOCK ── */
+.code-block {
+  background: #0f172a; color: #e2e8f0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; line-height: 1.7;
+  border-radius: 12px; padding: 22px 24px;
+  margin: 16px 0; overflow-x: auto;
+  border: 1px solid #1e293b;
+}
+.code-comment { color: #64748b; }
+.code-green { color: #34d399; }
+.code-blue { color: #60a5fa; }
+.code-yellow { color: #fbbf24; }
+.code-arrow { color: #f472b6; }
+
+/* ── ENGINE FLOW ── */
+.engine-flow {
+  display: flex; align-items: center; gap: 0; margin: 20px 0;
+  flex-wrap: wrap;
+}
+.engine-box {
+  padding: 14px 20px; border-radius: 12px; border: 2px solid;
+  text-align: center; min-width: 140px;
+}
+.engine-box.main { background: #ecfdf5; border-color: var(--emerald); }
+.engine-box.free { background: #eff6ff; border-color: var(--blue); }
+.engine-box.paid { background: #fff7ed; border-color: var(--gold); }
+.engine-box.fallback { background: #f1f5f9; border-color: var(--border); }
+.engine-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+.engine-name { font-size: 13px; font-weight: 800; color: var(--teal); }
+.engine-stat { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.engine-arrow {
+  font-size: 22px; color: var(--muted); padding: 0 10px;
+  flex-shrink: 0;
+}
+.engine-arrow span { font-size: 10px; display: block; color: var(--muted); text-align: center; font-weight: 600; }
+
+/* ── KPI STRIP ── */
+.kpi-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin: 20px 0; }
+.kpi-box {
+  background: #fff; border: 1px solid var(--border); border-radius: 14px;
+  padding: 18px; position: relative; overflow: hidden;
+}
+.kpi-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.kpi-box.g::before { background: var(--emerald); }
+.kpi-box.b::before { background: var(--blue); }
+.kpi-box.o::before { background: var(--gold); }
+.kpi-box.r::before { background: var(--red); }
+.kpi-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.kpi-value { font-size: 24px; font-weight: 900; color: var(--teal); letter-spacing: -0.5px; }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ── COST JOURNEY ── */
+.cost-journey { display: flex; align-items: center; gap: 0; margin: 20px 0; overflow-x: auto; }
+.cost-step {
+  padding: 14px 16px; background: #fff; border: 1px solid var(--border);
+  border-radius: 10px; text-align: center; min-width: 120px; flex-shrink: 0;
+}
+.cost-step.active { background: #ecfdf5; border-color: var(--emerald); }
+.cost-step-label { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+.cost-step-value { font-size: 18px; font-weight: 900; color: var(--teal); }
+.cost-step.active .cost-step-value { color: var(--emerald); }
+.cost-step-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.cost-arrow { font-size: 20px; color: var(--emerald); padding: 0 6px; flex-shrink: 0; }
+
+/* ── VERDICT ── */
+.verdict-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin: 20px 0; }
+.verdict-item {
+  background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+}
+.verdict-icon { font-size: 22px; margin-bottom: 8px; }
+.verdict-title { font-size: 12px; font-weight: 800; color: var(--teal); margin-bottom: 4px; }
+.verdict-text { font-size: 11.5px; color: var(--muted); }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px; margin-left: 6px; vertical-align: middle;
+}
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-gold { background: #fef3c7; color: #92400e; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--border); margin: 32px 0; }
+
+/* ── 2-col ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 16px 0; }
+
+/* ── HIGHLIGHT NUM ── */
+.highlight-num {
+  text-align: center; padding: 28px 20px;
+  background: var(--teal); color: #fff;
+  border-radius: 16px;
+}
+.highlight-num .big { font-size: 44px; font-weight: 900; color: var(--emerald); letter-spacing: -2px; }
+.highlight-num .label { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+
+/* ── FOOTER ── */
+.doc-footer {
+  background: var(--teal); color: rgba(255,255,255,0.6);
+  padding: 24px 80px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px;
+}
+</style>
+</head>
+<body>
+
+<!-- BARRA DE IMPRESSÃO -->
+<div class="print-bar no-print">
+  <span>📄 XĐX Mercado — Documentação Técnica v2 · Abril 2026</span>
+  <button class="print-btn" onclick="window.print()">🖨️ Salvar como PDF (Cmd+P)</button>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════ CAPA ═══════════════ -->
+<div class="cover">
+  <div>
+    <div class="cover-tag">Confidencial · Estudo de Viabilidade · Versão 2.0</div>
+    <div class="cover-logo">X<span>Đ</span>X</div>
+    <div class="cover-tagline">Mercado — Use e Economize</div>
+    <div class="cover-desc">
+      Aplicativo móvel de escaneamento inteligente de preços com Inteligência Artificial multimodal.
+      O consumidor aponta a câmera para uma etiqueta e em 1–2 segundos o preço e o produto
+      são identificados automaticamente — sem digitar nada.
+    </div>
+  </div>
+  <div class="cover-kpis">
+    <div class="cover-kpi">
+      <div class="cover-kpi-value">R$0,004</div>
+      <div class="cover-kpi-label">Custo por Scan</div>
+    </div>
+    <div class="cover-kpi">
+      <div class="cover-kpi-value">3 Motores</div>
+      <div class="cover-kpi-label">IA Tri-Engine</div>
+    </div>
+    <div class="cover-kpi">
+      <div class="cover-kpi-value">-80%</div>
+      <div class="cover-kpi-label">Custo desde MVP</div>
+    </div>
+    <div class="cover-kpi">
+      <div class="cover-kpi-value">R$33k</div>
+      <div class="cover-kpi-label">Lucro/mês @ 100k users</div>
+    </div>
+  </div>
+  <div class="cover-footer">
+    <div class="cover-footer-left">XĐX Global Shopping · xdx-lovat.vercel.app · privacidade@xdxglobal.com</div>
+    <div class="cover-footer-right">Versão 2.0 · Abril 2026<br>Documento Confidencial</div>
+  </div>
+</div>
+
+<!-- ═══════════════ 1. SUMÁRIO EXECUTIVO ═══════════════ -->
+<section>
+  <div class="section-tag tag-emerald">01 · Sumário Executivo</div>
+  <h2>O que é o XĐX Mercado</h2>
+  <p>O <strong>XĐX Mercado</strong> é um aplicativo móvel de escaneamento inteligente de preços que utiliza Inteligência Artificial multimodal para controle financeiro em tempo real durante compras em supermercados.</p>
+  <p>O fluxo é simples: o usuário aponta a câmera do celular para uma etiqueta de preço → em 1–2 segundos o app lê o produto e o preço → o item é adicionado à lista com o total acumulado atualizado. Sem digitar nada. Sem abrir planilha. Sem esquecer no caixa.</p>
+
+  <div class="callout green">
+    <div class="callout-icon">🎯</div>
+    <div class="callout-text"><strong>Proposta de valor central:</strong> nenhum aplicativo no Brasil resolve esse problema de forma automática com IA. O mercado está inexplorado e a janela competitiva é de 12–18 meses.</div>
+  </div>
+
+  <div class="kpi-strip">
+    <div class="kpi-box g">
+      <div class="kpi-label">Status do Produto</div>
+      <div class="kpi-value">100%</div>
+      <div class="kpi-sub">MVP em produção</div>
+    </div>
+    <div class="kpi-box b">
+      <div class="kpi-label">Custo por Scan</div>
+      <div class="kpi-value">R$0,004</div>
+      <div class="kpi-sub">-80% vs ponto de partida</div>
+    </div>
+    <div class="kpi-box o">
+      <div class="kpi-label">Break-even</div>
+      <div class="kpi-value">~2k</div>
+      <div class="kpi-sub">usuários ativos</div>
+    </div>
+    <div class="kpi-box g">
+      <div class="kpi-label">Lucro @ 100k usuários</div>
+      <div class="kpi-value">R$33k</div>
+      <div class="kpi-sub">AdMob + XDX Pro</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 2. PROBLEMA ═══════════════ -->
+<section>
+  <div class="section-tag tag-blue">02 · Problema e Oportunidade</div>
+  <h2>Por que o XĐX existe</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>O Problema</h3>
+      <p>Consumidores brasileiros perdem controle financeiro nas compras por falta de visibilidade em tempo real:</p>
+      <ul style="padding-left:18px; color:#334155; margin-bottom:12px;">
+        <li>Não sabem quanto gastam até chegar no caixa</li>
+        <li>Não percebem quando um produto subiu de preço</li>
+        <li>Não têm histórico de preços pessoal</li>
+        <li>Apps de lista = digitação. Usuário abandona em 3 dias</li>
+      </ul>
+    </div>
+    <div>
+      <h3>A Oportunidade</h3>
+      <ul style="padding-left:18px; color:#334155; margin-bottom:12px;">
+        <li><strong>220 milhões de brasileiros</strong> compram em supermercado semanalmente</li>
+        <li>+34% uso de apps financeiros pós-pandemia (Febraban 2025)</li>
+        <li><strong>Nenhum concorrente direto</strong> com câmera + IA no Brasil</li>
+        <li>Custo de aquisição estimado: R$0,80–R$2,50 por usuário</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 3. COMO FUNCIONA ═══════════════ -->
+<section class="page-break">
+  <div class="section-tag tag-emerald">03 · Como Funciona</div>
+  <h2>Fluxo técnico completo</h2>
+
+  <div class="code-block">
+<span class="code-comment">── Pré-processamento (FRONTEND — sem custo IA) ──────────────────────</span>
+Câmera nativa → <span class="code-yellow">512×512px</span> + <span class="code-yellow">grayscale</span> + <span class="code-yellow">contraste 1.4×</span>
+                → redução de <span class="code-green">~60% nos tokens de imagem</span>
+                → preview colorido 800px mostrado ao usuário (separado)
+
+<span class="code-comment">── Pipeline Tri-Engine (BACKEND — Vercel Serverless) ────────────────</span>
+
+1. <span class="code-green">Gemini 2.5 Flash</span>  ──► resolves ~85% → <span class="code-green">retorna imediatamente</span>
+         ↓ falhou ou price=0
+2. <span class="code-blue">Gemini 1.5 Flash</span>  ──► <span class="code-blue">FREE tier Google (1.500/dia)</span> → ~55% de recuperação
+         ↓ falhou
+3. <span class="code-yellow">OpenAI GPT-4o-mini</span> ──► último recurso pago → maior precisão
+
+<span class="code-comment">── Cache anti-duplicata (90s por hash de imagem) ───────────────────</span>
+Toque duplo, retry rápido → <span class="code-green">zero chamada extra ao servidor</span>
+</div>
+
+  <h3>Arquitetura Tri-Engine</h3>
+
+  <div class="engine-flow">
+    <div class="engine-box main">
+      <div class="engine-tag" style="color:#059669">Motor 1 — PAGO</div>
+      <div class="engine-name">Gemini 2.5 Flash</div>
+      <div class="engine-stat">Resolve ~85% dos scans</div>
+    </div>
+    <div class="engine-arrow">→<span>falhou?</span></div>
+    <div class="engine-box free">
+      <div class="engine-tag" style="color:#1d4ed8">Motor 2 — GRÁTIS</div>
+      <div class="engine-name">Gemini 1.5 Flash</div>
+      <div class="engine-stat">Free tier 1.500/dia</div>
+    </div>
+    <div class="engine-arrow">→<span>falhou?</span></div>
+    <div class="engine-box paid">
+      <div class="engine-tag" style="color:#d97706">Motor 3 — PAGO</div>
+      <div class="engine-name">OpenAI GPT-4o-mini</div>
+      <div class="engine-stat">Último recurso</div>
+    </div>
+    <div class="engine-arrow">→<span>todos falharam?</span></div>
+    <div class="engine-box fallback">
+      <div class="engine-tag" style="color:#64748b">Graceful</div>
+      <div class="engine-name">Nome identificado</div>
+      <div class="engine-stat">Usuário digita preço</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 4. STACK ═══════════════ -->
+<section>
+  <div class="section-tag tag-blue">04 · Stack Tecnológico</div>
+  <h2>Arquitetura e tecnologias</h2>
+  <table>
+    <tr><th>Camada</th><th>Tecnologia</th><th>Justificativa</th></tr>
+    <tr><td class="td-em">Frontend Web</td><td>React 18 + TypeScript + Vite</td><td>Ecossistema maduro, build ultra-rápido</td></tr>
+    <tr><td class="td-em">Mobile Nativo</td><td>Capacitor 5 (Android + iOS)</td><td>Web → app nativo sem reescrever</td></tr>
+    <tr><td class="td-em">Animações</td><td>Framer Motion</td><td>Micro-interações premium sem peso</td></tr>
+    <tr><td class="td-em">Backend</td><td>Vercel Serverless Functions</td><td>Zero infraestrutura, escala automática</td></tr>
+    <tr><td class="td-em">Banco de Dados</td><td>Supabase PostgreSQL</td><td>RLS nativo, Auth incluso, região BR</td></tr>
+    <tr><td class="td-em">IA Principal</td><td>Google Gemini 2.5 Flash</td><td>Multimodal, altíssima capacidade, custo baixo</td></tr>
+    <tr><td class="td-em">IA Intermediária</td><td>Google Gemini 1.5 Flash</td><td><span class="badge badge-green">GRÁTIS</span> Free tier 1.500 req/dia</td></tr>
+    <tr><td class="td-em">IA Fallback</td><td>OpenAI GPT-4o-mini Vision</td><td>Melhor leitura de preços em condições difíceis</td></tr>
+    <tr><td class="td-em">Dashboard Admin</td><td>HTML + Chart.js + Leaflet</td><td>Separado do app, zero impacto no APK</td></tr>
+    <tr><td class="td-em">CI/CD</td><td>GitHub → Vercel</td><td>Deploy automático a cada commit em <2 min</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════ 5. OTIMIZAÇÃO DE CUSTOS ═══════════════ -->
+<section class="page-break">
+  <div class="section-tag tag-gold">05 · Jornada de Otimização de Custos</div>
+  <h2>De R$0,020 para R$0,004 por scan</h2>
+  <p>A arquitetura foi iterativamente otimizada em 4 etapas, reduzindo o custo em <strong>80%</strong> sem qualquer degradação de UX:</p>
+
+  <div class="cost-journey">
+    <div class="cost-step">
+      <div class="cost-step-label">MVP Inicial</div>
+      <div class="cost-step-value">R$0,020</div>
+      <div class="cost-step-sub">Quad-engine<br>4 chamadas</div>
+    </div>
+    <div class="cost-arrow">→</div>
+    <div class="cost-step">
+      <div class="cost-step-label">Pré-processamento</div>
+      <div class="cost-step-value">R$0,012</div>
+      <div class="cost-step-sub">512px grayscale<br>-60% tokens</div>
+    </div>
+    <div class="cost-arrow">→</div>
+    <div class="cost-step">
+      <div class="cost-step-label">Dual-Engine</div>
+      <div class="cost-step-value">R$0,007</div>
+      <div class="cost-step-sub">Gemini + OpenAI<br>máx 2 chamadas</div>
+    </div>
+    <div class="cost-arrow">→</div>
+    <div class="cost-step active">
+      <div class="cost-step-label">Tri-Engine + Cache</div>
+      <div class="cost-step-value">R$0,004</div>
+      <div class="cost-step-sub">Free tier intercalado<br>cache 90s</div>
+    </div>
+  </div>
+
+  <table style="margin-top:24px;">
+    <tr><th>Otimização</th><th>Mecanismo</th><th>Redução de Custo</th><th>Risco UX</th></tr>
+    <tr><td>Pré-processamento 512px grayscale</td><td>Canvas no frontend, antes de enviar à IA</td><td class="td-green">-60% tokens de imagem</td><td class="td-muted">Nenhum</td></tr>
+    <tr><td>Dual-Engine (Gemini → OpenAI)</td><td>Remove motores 2.0 e 1.5 intermediários</td><td class="td-green">-50% chamadas total</td><td class="td-muted">Nenhum</td></tr>
+    <tr><td>Motor 2 Gemini 1.5 Free Tier</td><td>Consome grátis antes de pagar OpenAI</td><td class="td-green">-50% chamadas OpenAI</td><td class="td-muted">Mínimo</td></tr>
+    <tr><td>Cache anti-duplicata 90s</td><td>Hash da imagem → retorna sem chamada</td><td class="td-green">-5-10% chamadas</td><td class="td-muted">Nenhum</td></tr>
+    <tr><td><strong>TOTAL ACUMULADO</strong></td><td>Todas as otimizações combinadas</td><td class="td-green"><strong>-80%</strong></td><td class="td-muted">Nenhum</td></tr>
+  </table>
+
+  <div class="callout gold">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-text"><strong>Otimizações descartadas por risco:</strong> Tesseract.js OCR local (app +40MB, colapsa celulares 2GB RAM comuns em classes C/D) e Batch Scan panorâmico (UX incompatível com mercado real). Custo → qualidade sempre prevalece neste produto.</div>
+  </div>
+</section>
+
+<!-- ═══════════════ 6. SEGURANÇA ═══════════════ -->
+<section>
+  <div class="section-tag tag-blue">06 · Segurança e Conformidade LGPD</div>
+  <h2>Blindagem técnica e legal</h2>
+  <table>
+    <tr><th>Camada</th><th>Proteção Implementada</th></tr>
+    <tr><td class="td-em">Chaves de API</td><td>Exclusivamente no servidor Vercel — nunca expostas ao cliente ou ao APK</td></tr>
+    <tr><td class="td-em">Rate Limiting</td><td>Máx. 15 requisições/min por IP no endpoint de scan</td></tr>
+    <tr><td class="td-em">Validação de Input</td><td>Tipo, presença e tamanho (&lt;5MB) validados antes de qualquer chamada</td></tr>
+    <tr><td class="td-em">Isolamento de Dados</td><td>Row Level Security (RLS) — cada usuário acessa apenas seus próprios itens</td></tr>
+    <tr><td class="td-em">Headers HTTP</td><td>X-XSS-Protection, X-Frame-Options: DENY, HSTS 2 anos, CORS restrito</td></tr>
+    <tr><td class="td-em">Autenticação</td><td>JWT assinado pelo Supabase, anônimo por padrão (sem fricção de cadastro)</td></tr>
+    <tr><td class="td-em">Permissão de Câmera</td><td>Permissions-Policy: camera=self — apenas o domínio oficial</td></tr>
+  </table>
+
+  <h3>Conformidade LGPD — Lei nº 13.709/2018</h3>
+  <table>
+    <tr><th>Requisito</th><th>Implementação</th></tr>
+    <tr><td>Consentimento explícito</td><td>Modal "Li e Concordo com os Termos e Política de Privacidade" na 1ª abertura</td></tr>
+    <tr><td>Dados coletados declarados</td><td>Nome, telefone e histórico de compras — declarados nos termos</td></tr>
+    <tr><td>Processadores externos</td><td>Google (Gemini) e OpenAI declarados como processadores de IA</td></tr>
+    <tr><td>Imagens não retidas</td><td>Enviadas à IA e descartadas imediatamente — sem armazenamento</td></tr>
+    <tr><td>Direito ao apagamento</td><td>Botão "Excluir Minha Conta e Todos os Dados" na tela de perfil</td></tr>
+    <tr><td>Canal de contato</td><td>privacidade@xdxglobal.com declarado nos termos</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════ 7. CUSTOS ═══════════════ -->
+<section class="page-break">
+  <div class="section-tag tag-gold">07 · Modelo de Custos</div>
+  <h2>Custo operacional por milestone</h2>
+  <p>Custo variável de IA: <strong>R$0,004/scan</strong> × 90 scans/usuário/mês = <strong>R$0,36/usuário ativo/mês</strong></p>
+
+  <table>
+    <tr><th>Usuários Ativos/mês</th><th>Fixo (Vercel + Supabase)</th><th>IA (R$0,36/usuário)</th><th>Total/mês</th><th>vs versão anterior</th></tr>
+    <tr><td class="td-em">1.000</td><td>R$ 235</td><td>R$ 360</td><td class="td-green">R$ 595</td><td class="td-muted">Era R$ 775</td></tr>
+    <tr><td class="td-em">10.000</td><td>R$ 235</td><td>R$ 3.600</td><td class="td-green">R$ 3.835</td><td class="td-muted">Era R$ 5.635</td></tr>
+    <tr><td class="td-em">50.000</td><td>R$ 500</td><td>R$ 18.000</td><td class="td-green">R$ 18.500</td><td class="td-muted">Era R$ 27.500</td></tr>
+    <tr><td class="td-em">100.000</td><td>R$ 900</td><td>R$ 36.000</td><td class="td-green">R$ 36.900</td><td class="td-muted">Era R$ 54.900</td></tr>
+    <tr><td class="td-em">500.000</td><td>R$ 3.000</td><td>R$ 180.000</td><td class="td-green">R$ 183.000</td><td class="td-muted">Era R$ 273.000</td></tr>
+  </table>
+
+  <div class="callout green">
+    <div class="callout-icon">💡</div>
+    <div class="callout-text">A próxima otimização de grande impacto é <strong>Parceria B2B com redes de supermercado</strong>: preços pré-carregados eliminam chamadas IA em 40% dos itens nas lojas parceiras, além de gerar receita direta da parceria.</div>
+  </div>
+</section>
+
+<!-- ═══════════════ 8. RECEITA ═══════════════ -->
+<section>
+  <div class="section-tag tag-emerald">08 · Modelo de Receita</div>
+  <h2>Múltiplas fontes, crescimento em camadas</h2>
+
+  <table>
+    <tr><th>Fonte</th><th>Ativação</th><th>Receita estimada</th><th>Conversão</th></tr>
+    <tr><td class="td-em">AdMob Banner</td><td>Ao publicar na Play Store</td><td>eCPM R$2,50–4,00</td><td>100% usuários free</td></tr>
+    <tr><td class="td-em">AdMob Intersticial</td><td>Ao finalizar cada compra</td><td>eCPM R$12–20</td><td>100% usuários free</td></tr>
+    <tr><td class="td-em">XĐX Pro</td><td>A partir de 10k usuários</td><td>R$9,90/mês</td><td>5% esperado</td></tr>
+    <tr><td class="td-em">Parceria B2B (redes)</td><td>A partir de 50k usuários</td><td>Contrato negociável</td><td>1 rede = R$2-5k/mês</td></tr>
+    <tr><td class="td-em">Data Insights (DaaS)</td><td>A partir de 100k usuários</td><td>R$10-30k/mês</td><td>Relatórios de preços</td></tr>
+  </table>
+
+  <h3>Projeção com AdMob + XĐX Pro (100k usuários)</h3>
+  <div class="two-col">
+    <table>
+      <tr><th>Fonte</th><th>Receita/mês</th></tr>
+      <tr><td>AdMob — 95k usuários free</td><td class="td-green">R$ 38.475</td></tr>
+      <tr><td>XĐX Pro — 5k × R$9,90</td><td class="td-green">R$ 49.500</td></tr>
+      <tr><td><strong>Total Receita</strong></td><td class="td-em">R$ 87.975</td></tr>
+      <tr><td>Custo total</td><td class="td-red">R$ 36.900</td></tr>
+      <tr><td><strong>Lucro Líquido</strong></td><td class="td-green"><strong>R$ 51.075/mês</strong></td></tr>
+    </table>
+    <div class="highlight-num" style="display:flex;flex-direction:column;justify-content:center;">
+      <div class="big">R$51k</div>
+      <div class="label">lucro líquido/mês<br>com 100k usuários</div>
+      <div style="margin-top:16px;font-size:11px;opacity:0.6;">(vs R$33k estimado antes da<br>otimização Tri-Engine)</div>
+    </div>
+  </div>
+
+  <div class="callout blue">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-text"><strong>Importante:</strong> com <em>apenas</em> AdMob, o sistema não é lucrativo antes de ~30k usuários. O modelo se torna robusto com AdMob + XĐX Pro a partir de 20k usuários. Isso deve nortear a estratégia de lançamento do Pro.</div>
+  </div>
+</section>
+
+<!-- ═══════════════ 9. DASHBOARD ADMIN ═══════════════ -->
+<section class="page-break">
+  <div class="section-tag tag-blue">09 · Dashboard Administrativo</div>
+  <h2>Inteligência operacional e B2B</h2>
+  <p>Dashboard separado do app móvel, acessível em <strong>xdx-lovat.vercel.app/admin</strong>. Protegido por senha. Zero impacto no APK ou na performance do usuário.</p>
+
+  <div class="two-col">
+    <div>
+      <h3>⚡ Gestão Operacional</h3>
+      <ul style="padding-left:18px; color:#334155; font-size:13px;">
+        <li>Total de scans (dia / semana / mês)</li>
+        <li>Usuários únicos e ativos</li>
+        <li>Custo médio por scan</li>
+        <li>Taxa de fallback Gemini → OpenAI</li>
+        <li>Latência média de leitura</li>
+        <li>Scans por sessão de compra</li>
+        <li>Total economizado pelos usuários</li>
+        <li>Mapa do Brasil com marcadores por supermercado</li>
+        <li>Ranking de redes por volume de scans</li>
+      </ul>
+    </div>
+    <div>
+      <h3>📊 B2B / DaaS</h3>
+      <ul style="padding-left:18px; color:#334155; font-size:13px;">
+        <li>Índice de dispersão de preços por SKU</li>
+        <li>Share of scans por categoria (market share prático)</li>
+        <li>Índice de ruptura de gôndola (queda de leitura)</li>
+        <li>Cesta de afinidade (produtos co-escaneados)</li>
+        <li>Velocidade de repasse de preço pela rede</li>
+        <li>Tabela por produto: mín, médio, máx, dispersão</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-icon">🔑</div>
+    <div class="callout-text"><strong>Segurança do Dashboard:</strong> a API usa <code>SUPABASE_SERVICE_ROLE_KEY</code> exclusivamente server-side. Nunca exposta ao browser. Acesso protegido por <code>ADMIN_SECRET</code> em variável de ambiente do Vercel.</div>
+  </div>
+</section>
+
+<!-- ═══════════════ 10. COMPETITIVO ═══════════════ -->
+<section>
+  <div class="section-tag tag-gray">10 · Análise Competitiva</div>
+  <h2>Posicionamento único no mercado</h2>
+  <table>
+    <tr><th>Solução</th><th>Categoria</th><th>Diferença do XĐX</th></tr>
+    <tr><td class="td-em">Rappi / iFood</td><td>Delivery</td><td>XĐX é para compra presencial, não entrega</td></tr>
+    <tr><td class="td-em">Mercado Livre</td><td>E-commerce</td><td>XĐX opera no mercado físico</td></tr>
+    <tr><td class="td-em">Apps de cupons</td><td>Passivo, pré-compra</td><td>XĐX é ativo e em tempo real durante a compra</td></tr>
+    <tr><td class="td-em">Planilhas / Notas</td><td>Manual</td><td>XĐX usa câmera — zero digitação</td></tr>
+    <tr><td class="td-em">Apps de lista</td><td>Input manual</td><td>XĐX é automático + tem histórico de preços</td></tr>
+  </table>
+
+  <div class="callout green">
+    <div class="callout-icon">🏆</div>
+    <div class="callout-text"><strong>Vantagem competitiva duradoura:</strong> a base histórica de preços por usuário cria um <em>efeito flywheel</em> — quanto mais o usuário usa, mais o app sabe sobre seus hábitos de compra e histórico de preços. Isso é um moat que aumenta com o tempo.</div>
+  </div>
+</section>
+
+<!-- ═══════════════ 11. RISCOS ═══════════════ -->
+<section>
+  <div class="section-tag tag-red">11 · Riscos e Mitigações</div>
+  <h2>O que pode dar errado e como evitar</h2>
+  <table>
+    <tr><th>Risco</th><th>Prob.</th><th>Impacto</th><th>Mitigação</th></tr>
+    <tr>
+      <td class="td-em">Aumento de preço das APIs de IA</td>
+      <td class="td-gold">Alta</td><td class="td-gold">Alto</td>
+      <td>Tri-engine + free tier + cache reduzem dependência de 1 provedor; troca de modelo = 1 linha de código</td>
+    </tr>
+    <tr>
+      <td class="td-em">Concorrente lança app similar</td>
+      <td class="td-gold">Média</td><td class="td-gold">Alto</td>
+      <td>Base histórica de dados como moat; velocidade de iteração com equipe enxuta; 12–18 meses de vantagem</td>
+    </tr>
+    <tr>
+      <td class="td-em">Acurácia da IA em baixa iluminação</td>
+      <td class="td-gold">Alta</td><td class="td-muted">Baixo</td>
+      <td>Graceful degradation: retorna nome, usuário digita preço; motor OpenAI como fallback de alta precisão</td>
+    </tr>
+    <tr>
+      <td class="td-em">Supabase indisponível</td>
+      <td class="td-green">Baixa</td><td class="td-gold">Alto</td>
+      <td>Auth anônimo persiste offline; dados sincronizam ao retornar</td>
+    </tr>
+    <tr>
+      <td class="td-em">LGPD — autuação ANPD</td>
+      <td class="td-green">Baixa</td><td class="td-gold">Alto</td>
+      <td>Conformidade implementada desde o MVP; imagens não armazenadas; direito de apagamento disponível</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ═══════════════ 12. ROADMAP ═══════════════ -->
+<section class="page-break">
+  <div class="section-tag tag-emerald">12 · Roadmap Estratégico</div>
+  <h2>4 fases até escala nacional</h2>
+  <table>
+    <tr><th>Fase</th><th>Prazo</th><th>Entregáveis</th><th>Meta de Usuários</th></tr>
+    <tr>
+      <td><span class="badge badge-green">✅ Fase 1</span></td>
+      <td class="td-muted">Concluído</td>
+      <td>Scanner IA tri-engine, lista, histórico, gamificação, LGPD, segurança, otimizações de custo, Dashboar Admin</td>
+      <td class="td-muted">MVP</td>
+    </tr>
+    <tr>
+      <td><strong>Fase 2</strong></td>
+      <td class="td-gold">4–8 semanas</td>
+      <td>APK Android assinado, Google Play Store, AdMob integrado (banner + intersticial)</td>
+      <td class="td-gold">0 → 5.000</td>
+    </tr>
+    <tr>
+      <td><strong>Fase 3</strong></td>
+      <td class="td-muted">3–6 meses</td>
+      <td>Cache de nomes por produto (Supabase), XĐX Pro assinatura, versão iOS, notificações push, piloto B2B</td>
+      <td class="td-muted">5k → 50k</td>
+    </tr>
+    <tr>
+      <td><strong>Fase 4</strong></td>
+      <td class="td-muted">6–18 meses</td>
+      <td>Parcerias com redes (Assaí, Carrefour), DaaS de preços para indústria, inteligência por CEP/Cidade, LATAM</td>
+      <td class="td-muted">50k → 500k</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ═══════════════ 13. VEREDITO ═══════════════ -->
+<section>
+  <div class="section-tag tag-emerald">13 · Veredito de Viabilidade</div>
+  <h2>A análise final</h2>
+
+  <div class="verdict-grid">
+    <div class="verdict-item">
+      <div class="verdict-icon">✅</div>
+      <div class="verdict-title">Viabilidade Técnica — ALTA</div>
+      <div class="verdict-text">Produto em produção, testado em campo, arquitetura escalável e resiliente com 3 motores de IA.</div>
+    </div>
+    <div class="verdict-item">
+      <div class="verdict-icon">⚠️</div>
+      <div class="verdict-title">Viabilidade Financeira (AdMob puro) — MARGINAL</div>
+      <div class="verdict-text">Break-even apenas após ~30k usuários. Custos de IA crescem com a base de usuários.</div>
+    </div>
+    <div class="verdict-item">
+      <div class="verdict-icon">✅</div>
+      <div class="verdict-title">Viabilidade Financeira (AdMob + Pro) — ALTA</div>
+      <div class="verdict-text">Lucro de R$51k/mês a 100k usuários. ROI positivo a partir de 20k usuários.</div>
+    </div>
+    <div class="verdict-item">
+      <div class="verdict-icon">✅</div>
+      <div class="verdict-title">Tempo até Mercado — IMEDIATO</div>
+      <div class="verdict-text">MVP pronto. Falta apenas publicação na Play Store (APK + Google Play Console).</div>
+    </div>
+    <div class="verdict-item">
+      <div class="verdict-icon">✅</div>
+      <div class="verdict-title">Risco Tecnológico — BAIXO</div>
+      <div class="verdict-text">Google, OpenAI, Vercel e Supabase são fornecedores consolidados e globais.</div>
+    </div>
+    <div class="verdict-item">
+      <div class="verdict-icon">⚠️</div>
+      <div class="verdict-title">Janela Competitiva — 12-18 meses</div>
+      <div class="verdict-text">Mercado inexplorado, mas pode atrair imitadores. Velocidade de lançamento é crítica.</div>
+    </div>
+  </div>
+
+  <div class="callout green" style="margin-top:28px;">
+    <div class="callout-icon">🚀</div>
+    <div class="callout-text" style="font-size:14px;">
+      <strong>Recomendação final: prosseguir com lançamento imediato.</strong> O produto está completo, os custos estão otimizados em 80%, a conformidade legal está implementada e o mercado está inexplorado. O maior risco é a inação — a janela de vantagem competitiva está aberta agora.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ RODAPÉ ═══════════════ -->
+<div class="doc-footer">
+  <div>XĐX Global Shopping · xdx-lovat.vercel.app · privacidade@xdxglobal.com</div>
+  <div>Versão 2.0 · Abril 2026 · CONFIDENCIAL · Todos os direitos reservados</div>
+</div>
+
+</div><!-- /content -->
+</body>
+</html>

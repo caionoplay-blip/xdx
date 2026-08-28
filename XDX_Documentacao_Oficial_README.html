@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XDX Mercado - Documentação Oficial</title>
+    <style>
+        :root {
+            --primary: #111827;
+            --secondary: #4b5563;
+            --accent: #2563eb;
+            --bg-light: #f9fafb;
+            --border: #e5e7eb;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--primary);
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f3f4f6;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 50px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .text-center {
+            text-align: center;
+        }
+        .banner {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 2.2em;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: var(--secondary);
+            font-size: 1.1em;
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+            margin-top: 40px;
+            font-size: 1.5em;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        code {
+            background-color: var(--bg-light);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #db2777;
+            border: 1px solid var(--border);
+        }
+        pre {
+            background-color: #1f2937;
+            color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: monospace;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+        }
+        .blockquote {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            color: #1e40af;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--secondary);
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+        
+        /* Ajustes para impressão PDF */
+        @media print {
+            body { background-color: white; padding: 0; }
+            .container { box-shadow: none; padding: 0; }
+            pre { background-color: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="text-center">
+        <!-- Banner (mesmo do Github) -->
+        <img class="banner" alt="XDX Mercado Banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+        
+        <h1>🛒 XDX - Mercado</h1>
+        <p class="subtitle"><strong>Inteligência Computacional B2B para Gestão de Inventário e Supermercados</strong></p>
+    </div>
+
+    <h2>📖 Sobre o Projeto</h2>
+    <p>O <strong>XDX - Mercado</strong> é um ecossistema avançado de reconhecimento de imagem e gestão comercial criado para supermercados. Utilizando Inteligência Artificial (Google Gemini), o XDX permite aos repositores capturar fotos de prateleiras e gôndolas para extração automática de preços, rótulos e validades, centralizando tudo em um Dashboard Administrativo em tempo real.</p>
+    <p>O sistema é construído como uma Aplicação Web Híbrida (Monolith) pronta para ser distribuída na Web (Vercel) e nos dispositivos móveis (Android via Capacitor).</p>
+
+    <h2>🚀 Principais Funcionalidades</h2>
+    <ul>
+        <li><strong>📸 Scan Inteligente (GenAI):</strong> Extração de texto de gôndolas e etiquetas usando a API Gemini Vision.</li>
+        <li><strong>📊 Dashboard de Bordo:</strong> Acompanhamento de escaneamentos, inventário e precificação em tempo real.</li>
+        <li><strong>☁️ Supabase Realtime:</strong> Sincronização e armazenamento de dados em nuvem usando Postgres.</li>
+        <li><strong>📱 PWA & Mobile Native:</strong> Interface unificada web com wrap nativo Android/iOS via Capacitor.</li>
+    </ul>
+
+    <h2>🛠 Tecnologias Utilizadas</h2>
+    <ul>
+        <li><strong>Frontend:</strong> React 19, Vite 6, Tailwind CSS 4</li>
+        <li><strong>Backend & IA:</strong> Supabase (Postgres DB), Google GenAI (@google/genai), Node.js (Vercel Serverless)</li>
+        <li><strong>Mobile:</strong> Capacitor 6, Capacitor AdMob</li>
+    </ul>
+
+    <h2>⚙️ Pré-requisitos</h2>
+    <p>Certifique-se de ter os seguintes itens instalados no seu computador para rodar o código-fonte:</p>
+    <ul>
+        <li><strong>Node.js</strong> (Versão 20 ou superior)</li>
+        <li><strong>NPM</strong> (Gerenciador de pacotes)</li>
+        <li><strong>Android Studio</strong> (Apenas se for compilar o APK/AAB)</li>
+    </ul>
+
+    <h2>💻 Instalação e Execução Local</h2>
+    <p><strong>1. Clone o repositório:</strong></p>
+<pre><code>git clone https://github.com/devbtmenegali/xdx.git
+cd xdx</code></pre>
+
+    <p><strong>2. Instale as dependências:</strong></p>
+<pre><code>npm install</code></pre>
+
+    <p><strong>3. Configuração de Variáveis de Ambiente:</strong><br>Crie um arquivo <code>.env</code> na raiz do projeto seguindo a estrutura do arquivo <code>.env.example</code>:</p>
+<pre><code>GEMINI_API_KEY=sua_chave_do_google_aqui
+VITE_SUPABASE_URL=url_do_seu_banco_aqui
+VITE_SUPABASE_ANON_KEY=chave_anonima_do_supabase_aqui</code></pre>
+
+    <p><strong>4. Rode a Aplicação:</strong></p>
+<pre><code>npm run dev</code></pre>
+    <div class="blockquote">
+        💡 A aplicação estará disponível em <code>http://localhost:5173</code> (ou na porta especificada pelo Vite).
+    </div>
+
+    <h2>📱 Build Mobile (Android)</h2>
+    <p>Para gerar a compilação do Android, o aplicativo faz uso do Capacitor para copiar a build web para dentro da pasta <code>/android</code>.</p>
+    
+    <p><strong>1. Gere a Build Web e Sincronize o Mobile:</strong></p>
+<pre><code>npm run mobile:build</code></pre>
+    <p><em>Esse comando roda <code>vite build</code> e <code>npx cap sync</code> em sequência.</em></p>
+
+    <p><strong>2. Abra o Projeto no Android Studio:</strong></p>
+<pre><code>npx cap open android</code></pre>
+    <p>Dentro do Android Studio, vá em <strong>Build > Generate Signed Bundle / APK...</strong> e utilize a sua chave de produção <code>xdx-production.keystore</code>.</p>
+
+    <h2>📁 Estrutura do Projeto</h2>
+<pre><code>/xdx-mercado
+├── /android           # Código nativo do aplicativo Android (Capacitor)
+├── /api               # Funções Serverless Backend (Node.js/Vercel)
+├── /public            # Imagens e ícones estáticos
+├── /src
+│   ├── App.tsx        # Aplicação Principal React
+│   ├── index.css      # Estilos Globais Tailwind
+│   └── /services      # Integrações de APIs (ex: gemini.ts)
+├── capacitor.config.ts# Configuração do compilador Mobile
+├── package.json       # Dependências e scripts npm
+├── server.ts          # Servidor Local / Handler Principal
+└── README.md          # Esta documentação
+</code></pre>
+
+    <div class="footer">
+        Desenvolvido com dedicação por <b>devbtmenegali</b>. 🚀
+    </div>
+</div>
+
+</body>
+</html>

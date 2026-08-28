@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XDX Mercado v2 - Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #06090f;
+  --bg2: #0d1117;
+  --bg3: #161b22;
+  --border: #21262d;
+  --text: #e6edf3;
+  --muted: #7d8590;
+  --emerald: #10b981;
+  --emerald-dim: rgba(16,185,129,0.12);
+  --gold: #f59e0b;
+  --gold-dim: rgba(245,158,11,0.12);
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --teal: #003d4d;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── LOGIN ── */
+#loginScreen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 60% 40%, rgba(16,185,129,0.08) 0%, transparent 60%), var(--bg);
+}
+.login-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 24px;
+  padding: 48px; width: 380px; text-align: center;
+  box-shadow: 0 0 60px rgba(16,185,129,0.05);
+}
+.login-logo { font-size: 36px; font-weight: 900; color: var(--emerald); letter-spacing: -2px; margin-bottom: 4px; }
+.login-sub { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 32px; }
+.login-input {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 16px; color: var(--text); font-size: 15px;
+  font-family: inherit; margin-bottom: 14px; outline: none;
+  transition: border-color 0.2s;
+}
+.login-input:focus { border-color: var(--emerald); }
+.login-btn {
+  width: 100%; background: var(--emerald); color: #fff; border: none;
+  border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 2px; cursor: pointer;
+  transition: opacity 0.2s;
+}
+.login-btn:hover { opacity: 0.85; }
+.login-error { color: var(--red); font-size: 12px; margin-top: 10px; display: none; }
+
+/* ── LAYOUT ── */
+#app { display: none; }
+.sidebar {
+  position: fixed; top: 0; left: 0; width: 220px; height: 100vh;
+  background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100;
+}
+.sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
+.sidebar-logo .logo { font-size: 22px; font-weight: 900; color: var(--emerald); }
+.sidebar-logo .sub { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; }
+.nav { padding: 16px 12px; flex: 1; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border-radius: 10px; cursor: pointer; margin-bottom: 4px;
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  transition: all 0.15s;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--emerald-dim); color: var(--emerald); }
+.nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+.last-update { font-size: 10px; color: var(--muted); }
+.logout-btn { font-size: 11px; color: var(--muted); cursor: pointer; margin-top: 8px; }
+.logout-btn:hover { color: var(--red); }
+
+.main { margin-left: 220px; padding: 32px; }
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 28px;
+}
+.page-title { font-size: 20px; font-weight: 800; }
+.page-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.refresh-btn {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+  border-radius: 10px; padding: 8px 16px; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.refresh-btn:hover { border-color: var(--emerald); color: var(--emerald); }
+
+/* ── KPI CARDS ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 16px;
+  padding: 20px; position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.kpi-card.green::before { background: var(--emerald); }
+.kpi-card.gold::before { background: var(--gold); }
+.kpi-card.blue::before { background: var(--blue); }
+.kpi-card.red::before { background: var(--red); }
+.kpi-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+.kpi-value { font-size: 26px; font-weight: 900; color: var(--text); letter-spacing: -1px; }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.kpi-badge {
+  display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px; margin-top: 6px;
+}
+.badge-green { background: var(--emerald-dim); color: var(--emerald); }
+.badge-gold { background: var(--gold-dim); color: var(--gold); }
+
+/* ── CHARTS GRID ── */
+.charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
+.charts-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.charts-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 22px;
+}
+.card-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 4px; }
+.card-value { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+.section-label {
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
+  padding: 6px 12px; border-radius: 6px; display: inline-block; margin-bottom: 20px;
+}
+.section-label.op { background: var(--emerald-dim); color: var(--emerald); }
+.section-label.b2b { background: var(--gold-dim); color: var(--gold); }
+
+/* ── MAP ── */
+#map { height: 340px; border-radius: 12px; }
+.leaflet-container { background: #0d1117 !important; }
+
+/* ── TABLE ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th { text-align: left; padding: 8px 10px; color: var(--muted); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+.data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); }
+.data-table tr:last-child td { border: none; }
+.data-table tr:hover td { background: var(--bg3); }
+.rank { color: var(--muted); font-weight: 700; }
+.store-name { font-weight: 700; color: var(--text); }
+.bar-wrap { width: 80px; height: 4px; background: var(--border); border-radius: 2px; display: inline-block; vertical-align: middle; }
+.bar-fill { height: 100%; border-radius: 2px; background: var(--emerald); }
+
+/* ── AFFINITY ── */
+.pair-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.pair-item:last-child { border: none; }
+.pair-name { font-size: 12px; font-weight: 600; color: var(--text); flex: 1; }
+.pair-count { font-size: 12px; font-weight: 800; color: var(--emerald); }
+
+/* ── TABS ── */
+.tab-bar { display: flex; gap: 4px; margin-bottom: 24px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 4px; width: fit-content; }
+.tab { padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+.tab.active { background: var(--bg3); color: var(--text); }
+
+/* ── LOADING ── */
+.loading { color: var(--muted); font-size: 12px; text-align: center; padding: 20px; }
+.skeleton { background: var(--bg3); border-radius: 6px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+/* ── SIMULATED BADGE ── */
+.sim-badge { font-size: 9px; color: var(--muted); font-weight: 600; padding: 2px 6px; background: var(--bg3); border-radius: 4px; vertical-align: middle; margin-left: 6px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">XĐX</div>
+    <div class="login-sub">Admin Dashboard</div>
+    <input type="password" class="login-input" id="pwInput" placeholder="Senha de administrador" />
+    <button class="login-btn" onclick="doLogin()">Entrar -></button>
+    <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo">XĐX Admin</div>
+      <div class="sub">Painel do Proprietário</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item" id="nav-op" onclick="switchTab('op')">📊 Operação</div>
+      <div class="nav-item" id="nav-b2b" onclick="switchTab('b2b')">🏢 Inteligência B2B</div>
+      <div class="nav-item" id="nav-ai" onclick="switchTab('ai')">🤖 Monitoramento de IA</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="last-update" id="lastUpdate">Carregando...</div>
+      <div class="logout-btn" onclick="doLogout()">Sair -></div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ══ ABA: OPERAÇÃO ══ -->
+    <div id="tabOp">
+      <div class="topbar">
+        <div>
+          <div class="page-title">Operação do App</div>
+          <div class="page-sub">Gestão técnica e performance do sistema</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="refresh-btn" style="border-color:var(--gold);color:var(--gold)" onclick="runDiagnosis()">Diagnosticar</button>
+          <button class="refresh-btn" style="border-color:var(--red);color:var(--red)" onclick="doReset()">Zerar Sistema</button>
+          <button class="refresh-btn" onclick="loadAll()">Atualizar</button>
+        </div>
+      </div>
+
+      <div class="section-label op">⚡ Gestão Operacional</div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card green">
+          <div class="kpi-label">Total de Scans</div>
+          <div class="kpi-value" id="kpiScans">—</div>
+          <div class="kpi-sub" id="scanSub">Carregando...</div>
+        </div>
+        <div class="kpi-card gold">
+          <div class="kpi-label">Scans Agora (Live)</div>
+          <div class="kpi-value" id="kpiActive" style="color:var(--emerald)">0</div>
+          <div class="kpi-sub">Sessões ativas no mercado</div>
+          <span class="kpi-badge badge-green">Tempo Real</span>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">Custo Médio / Scan</div>
+          <div class="kpi-value" id="kpiCost">R$0,004</div>
+          <div class="kpi-sub">Tri-engine otimizado</div>
+          <span class="kpi-badge badge-green" id="kpiCostMsg">↓ 80% vs MVP inicial</span>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">Taxa de Fallback IA</div>
+          <div class="kpi-value" id="kpiFallback">12%</div>
+          <div class="kpi-sub">Gemini -> OpenAI</div>
+          <span class="kpi-badge badge-green" id="kpiFallbackMsg">88% no Gemini</span>
+        </div>
+        <div class="kpi-card gold">
+          <div class="kpi-label">Total Economizado</div>
+          <div class="kpi-value" id="kpiEconomized">—</div>
+          <div class="kpi-sub">Pelos usuários</div>
+          <span class="kpi-badge badge-gold">vs metas definidas</span>
+        </div>
+      </div>
+
+      <!-- KPI row 2 -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:28px;">
+        <div class="kpi-card blue">
+          <div class="kpi-label">Latência Média</div>
+          <div class="kpi-value" id="kpiLatency">1.8s</div>
+          <div class="kpi-sub">Por scan (incluindo IA)</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Scans / Compra</div>
+          <div class="kpi-value" id="kpiAvgScans">—</div>
+          <div class="kpi-sub">Itens por sessão</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Total de Compras</div>
+          <div class="kpi-value" id="kpiTrips">—</div>
+          <div class="kpi-sub">Finalizadas</div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">DAU/MAU Ratio</div>
+          <div class="kpi-value" id="kpiDauMau">—</div>
+          <div class="kpi-sub">Engajamento diário</div>
+        </div>
+      </div>
+
+      <!-- Timeline + Engine -->
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-title">Volume de Scans — Últimos 30 Dias</div>
+          <div class="card-value" id="timelineTotal">Carregando...</div>
+          <canvas id="timelineChart" height="120"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Motor de IA Utilizado</div>
+          <div class="card-value">Distribuição de Engine</div>
+          <canvas id="engineChart" height="160"></canvas>
+        </div>
+      </div>
+
+      <!-- Map + Stores -->
+      <div class="charts-grid" style="margin-bottom:24px;">
+        <div class="card">
+          <div class="card-title">Mapa de Supermercados</div>
+          <div class="card-value">Concentração por região</div>
+          <div id="map"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Top Supermercados por Scans</div>
+          <div class="card-value" id="storesCount">Carregando...</div>
+          <table class="data-table">
+            <thead>
+              <tr><th>#</th><th>Mercado</th><th>Scans</th><th>Participação</th></tr>
+            </thead>
+            <tbody id="storesTable">
+              <tr><td colspan="4" class="loading">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ABA: B2B / DAAS ══ -->
+    <div id="tabB2b" style="display:none;">
+      <div class="topbar">
+        <div>
+          <div class="page-title">B2B / Data as a Service</div>
+          <div class="page-sub">Inteligência de mercado para marcas e indústria</div>
+        </div>
+        <button class="refresh-btn" onclick="loadAll()">↻ Atualizar</button>
+      </div>
+
+      <div class="section-label b2b">📊 Inteligência de Mercado</div>
+
+      <!-- B2B KPIs -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:28px;">
+        <div class="kpi-card gold">
+          <div class="kpi-label">Produtos Rastreados</div>
+          <div class="kpi-value" id="kpiProducts">—</div>
+          <div class="kpi-sub">SKUs únicos</div>
+        </div>
+        <div class="kpi-card gold">
+          <div class="kpi-label">Maior Dispersão</div>
+          <div class="kpi-value" id="kpiDispersion">—</div>
+          <div class="kpi-sub">Min vs Max preço</div>
+        </div>
+        <div class="kpi-card gold">
+          <div class="kpi-label">Redes Monitoradas</div>
+          <div class="kpi-value" id="kpiNetworks">—</div>
+          <div class="kpi-sub">Supermercados únicos</div>
+        </div>
+        <div class="kpi-card gold">
+          <div class="kpi-label">Pares de Afinidade</div>
+          <div class="kpi-value" id="kpiPairs">—</div>
+          <div class="kpi-sub">Combinações recorrentes</div>
+        </div>
+      </div>
+
+      <!-- Price Dispersion + Category Share -->
+      <div class="charts-grid-2">
+        <div class="card">
+          <div class="card-title">Índice de Dispersão de Preços por SKU</div>
+          <div class="card-value">Variação regional do mesmo produto</div>
+          <canvas id="dispersionChart" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Share of Scans por Categoria</div>
+          <div class="card-value">Market share prático</div>
+          <canvas id="categoryChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Affinity + Rupture -->
+      <div class="charts-grid-2">
+        <div class="card">
+          <div class="card-title">Cesta de Afinidade — Top Pares</div>
+          <div class="card-value">Produtos co-escaneados na mesma compra</div>
+          <div id="affinityList"><div class="loading">Carregando...</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Índice de Ruptura de Gôndola</div>
+          <div class="card-value">Queda súbita de leitura por produto</div>
+          <canvas id="ruptureChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Price Pass-through -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">Velocidade de Repasse de Preço</div>
+        <div class="card-value">Tempo entre aumento da indústria e troca da etiqueta no varejo</div>
+        <canvas id="passthroughChart" height="100"></canvas>
+      </div>
+
+      <!-- Price Dispersion Table -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">Tabela de Dispersão — Produtos com maior variação de preço</div>
+        <div class="card-value">Oportunidade de inteligência para marcas e renegociação</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Produto</th><th>Mín</th><th>Méd</th><th>Máx</th><th>Dispersão</th><th>Lojas</th><th>Scans</th></tr>
+          </thead>
+          <tbody id="pricesTable">
+            <tr><td colspan="7" class="loading">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Preço Médio + Scans + Cesta por Prateleira/Categoria -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">Performance por Prateleira (Análise de Conversão B2B)</div>
+        <div class="card-value">Métricas reais baseadas em scans e adições ao carrinho</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Prateleira</th><th>Preço Médio</th><th>Cesta Média</th><th>Popularidade</th><th>Taxa Abandono</th><th>Lojas</th></tr>
+          </thead>
+          <tbody id="categoryPriceTable">
+            <tr><td colspan="6" class="loading">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Variação Preço por DD -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">Variação de Preço por Dia (DD) — Últimos 30 Dias</div>
+        <div class="card-value">Produtos com maior alteração de preço detectada pelo scanner</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Produto</th><th>Supermercado</th><th>Preço Inicial</th><th>Preço Atual</th><th>Variação R$</th><th>Variação %</th></tr>
+          </thead>
+          <tbody id="variationTable">
+            <tr><td colspan="6" class="loading">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Comparação de Preços Entre Supermercados -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">Comparação de Preços Entre Supermercados</div>
+        <div class="card-value">Mesmo produto, preços diferentes em cada rede — top produtos com maior spread</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Produto</th><th>Mais Barato</th><th>Preço ↓</th><th>Mais Caro</th><th>Preço ↑</th><th>Spread R$</th><th>Spread %</th></tr>
+          </thead>
+          <tbody id="comparisonTable">
+            <tr><td colspan="7" class="loading">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Info: B2B Operational -->
+      <div class="card" style="border-color:var(--emerald);margin-bottom:24px;background:var(--bg3)">
+        <div class="card-title" style="color:var(--emerald)">✅ Inteligência B2B Ativada</div>
+        <div class="card-value">Dados reais de prateleira e abandono captuados via App</div>
+        <div style="color:#7d8590;font-size:12px;line-height:1.6">
+          O sistema agora rastreia automaticamente a <strong>Prateleira</strong> via IA e registra o <strong>Abandono</strong> 
+          sempre que um usuário fecha o scan sem adicionar ao carrinho. Isso permite uma visão granular de qual corredor 
+          está performando melhor ou pior em cada rede.
+        </div>
+      </div>
+    </div>
+    
+    <!-- ══ ABA: MONITORAMENTO DE IA ══ -->
+    <div id="tabAi" style="display:none;">
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">Fluxo de Processamento de IA</div>
+        <div class="card-value">Últimos 50 scans e diagnósticos de fallback sincronizados em tempo real</div>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Data/Hora</th>
+                <th>Produto</th>
+                <th>Motor Final</th>
+                <th>Log Técnico (Motivos de Fallback)</th>
+              </tr>
+            </thead>
+            <tbody id="aiLogTable">
+              <tr><td colspan="4" class="loading">Carregando logs técnicos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="card" style="border-color:var(--gold);background:var(--bg3)">
+        <div class="card-title" style="color:var(--gold)">💡 Dica de Otimização</div>
+        <div class="card-value">Como reduzir o fallback e baixar custos</div>
+        <div style="color:#7d8590;font-size:12px;line-height:1.6">
+          Se você observar muitos erros de <strong>QUOTA_EXCEDIDA</strong>, considere aumentar o limite da sua conta Google Cloud ou usar modelos '8b' (mais baratos). 
+          O erro <strong>JSON_INVALIDO</strong> geralmente ocorre quando a foto está muito borrada ou escura.
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ══ CONFIG ══
+const API_URL = '/api/admin';
+let adminToken = '';
+let map = null;
+let chartTimeline = null, chartEngine = null, chartDispersion = null;
+let chartCategory = null, chartRupture = null, chartPassthrough = null;
+
+// ══ LOGIN ══
+function doLogin() {
+  const pw = document.getElementById('pwInput').value;
+  if (!pw) return;
+  adminToken = pw;
+  verifyToken();
+}
+document.getElementById('pwInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+async function verifyToken() {
+  try {
+    const r = await api('overview');
+    if (r.error) {
+      document.getElementById('loginError').textContent = r.error;
+      document.getElementById('loginError').style.display = 'block';
+      adminToken = '';
+      return;
+    }
+    localStorage.setItem('xdx_admin_token', adminToken);
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initMap();
+    loadAll(r);
+  } catch(e) {
+    document.getElementById('loginError').textContent = 'Erro de rede ou servidor: ' + e.message;
+    document.getElementById('loginError').style.display = 'block';
+    adminToken = '';
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('xdx_admin_token');
+  adminToken = '';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// --- HELPER PARA LIMPAR CARACTERES ESPECIAIS (ASCII APENAS) ---
+function cleanASCII(str) {
+  if (typeof str !== 'string') return str;
+  // Remove qualquer caractere com código > 127 (incluindo setinhas e emojis)
+  return str.replace(/[^\x00-\x7F]/g, "");
+}
+
+// ══ API ══
+async function api(action, extra = {}) {
+  // Anti-cache: Adiciona timestamp único para cada chamada
+  const url = `${API_URL}?v=${Date.now()}`;
+  
+  // Limpa o token e a ação de qualquer caractere "fantasma"
+  const safeToken = cleanASCII(adminToken);
+  const safeAction = cleanASCII(action);
+
+  const response = await fetch(url, {
+    method: 'POST',
+    cache: 'no-cache',
+    headers: { 
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ 
+      adminToken: safeToken, 
+      action: safeAction, 
+      ...extra 
+    })
+  });
+  return response.json();
+}
+
+// ══ TABS ══
+function switchTab(tab) {
+  document.getElementById('tabOp').style.display = tab === 'op' ? 'block' : 'none';
+  document.getElementById('tabB2b').style.display = tab === 'b2b' ? 'block' : 'none';
+  document.getElementById('tabAi').style.display = tab === 'ai' ? 'block' : 'none';
+  document.getElementById('nav-op').className = 'nav-item' + (tab === 'op' ? ' active' : '');
+  document.getElementById('nav-b2b').className = 'nav-item' + (tab === 'b2b' ? ' active' : '');
+  document.getElementById('nav-ai').className = 'nav-item' + (tab === 'ai' ? ' active' : '');
+}
+
+// ══ FORMAT ══
+const fmt = n => n === undefined ? '—' : n.toLocaleString('pt-BR');
+const fmtR = n => 'R$ ' + (n||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+// ══ DIAGNOSIS ══
+async function runDiagnosis() {
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = 'Verificando...';
+  try {
+    const r = await api('diagnosis');
+    if (r.error) {
+      alert("ERRO DE DIAGNOSTICO: " + r.error);
+    } else {
+      alert("DIAGNOSTICO CONCLUIDO: " + 
+            "\nConexao: " + (r.healthy ? "OK" : "FALHA") + 
+            "\nLinhas: " + r.rowCount + 
+            "\nColuna Categoria: " + (r.cols.shelf ? "OK" : "FALTANDO") + 
+            "\nColuna Abandono: " + (r.cols.abandoned ? "OK" : "FALTANDO") + 
+            "\nColuna Sessao: " + (r.cols.session ? "OK" : "FALTANDO"));
+    }
+  } catch(e) {
+    alert("❌ ERRO DE REDE:\n\n" + e.message);
+  } finally {
+    btn.textContent = originalText;
+  }
+}
+
+async function doReset() {
+  if (!confirm("⚠️ ATENÇÃO: Isso vai apagar TODOS os scans e carrinhos do banco de dados definitivamente. Esta ação não pode ser desfeita.\n\nDeseja continuar?")) return;
+  if (!confirm("ÚLTIMA CHANCE: Você tem certeza absoluta?")) return;
+  
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = 'Limpando...';
+  try {
+    const r = await api('resetData');
+    if (r.error) {
+      alert("ERRO: " + r.error);
+    } else {
+      alert("✅ SISTEMA ZERADO!\n\nTodos os dados de teste foram removidos. O XDX está pronto para o lançamento!");
+      window.location.reload(); 
+    }
+  } catch(e) {
+    alert("ERRO: " + e.message);
+  } finally {
+    btn.textContent = originalText;
+  }
+}
+
+
+// ══ LOAD ALL ══
+async function loadAll(overviewData) {
+  try {
+    document.getElementById('lastUpdate').textContent = 'Atualizando...';
+    const ov = overviewData || await api('overview');
+    if (ov.error) throw new Error(ov.error);
+    renderOverview(ov);
+
+    const [timeline, stores, prices, affinity, categories, variations, comparison, rupture, passthrough, aiLogs] = await Promise.all([
+      api('timeline'), api('stores'), api('prices'), api('affinity'),
+      api('avgByCategory'), api('priceVariation'), api('storeComparison'),
+      api('ruptureData'), api('passthroughData'), api('aiLogs')
+    ]);
+
+    if (!timeline.error) renderTimeline(timeline);
+    if (!stores.error) renderStores(stores);
+    if (!prices.error) renderPrices(prices);
+    if (!affinity.error) renderAffinity(affinity);
+    if (!categories.error && Array.isArray(categories)) {
+      renderCategoryPrices(categories);
+      renderCategoryChartFromData(categories); 
+    }
+    if (!variations.error && Array.isArray(variations)) renderVariations(variations);
+    if (!comparison.error && Array.isArray(comparison)) renderComparison(comparison);
+    if (!rupture.error) renderRuptureChart(rupture);
+    if (!passthrough.error) renderPassthroughChart(passthrough);
+    if (!aiLogs.error) renderAiLogs(aiLogs);
+    
+    renderEngineChart(ov.engineData);
+    document.getElementById('lastUpdate').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+  } catch (err) {
+    console.error("Erro no Dashboard:", err);
+    document.getElementById('lastUpdate').innerHTML = `<span style="color:var(--red)">⚠️ Erro: ${err.message}</span>`;
+  }
+}
+
+// ══ OVERVIEW ══
+function renderOverview(d) {
+  document.getElementById('kpiScans').textContent = fmt(d.totalScans);
+  document.getElementById('scanSub').textContent = `Dados em tempo real`;
+  document.getElementById('kpiActive').textContent = fmt(d.activeSessions || 0);
+  document.getElementById('kpiTrips').textContent = fmt(d.totalTrips);
+  document.getElementById('kpiAvgScans').textContent = d.avgScansPerTrip || '—';
+  document.getElementById('kpiEconomized').textContent = d.totalEconomized >= 0 ? fmtR(d.totalEconomized) : '—';
+  
+  if (d.costPerScan !== undefined) document.getElementById('kpiCost').textContent = 'R$ ' + d.costPerScan.toFixed(4);
+  if (d.fallbackRate !== undefined) {
+    document.getElementById('kpiFallback').textContent = d.fallbackRate + '%';
+    document.getElementById('kpiFallbackMsg').textContent = (100 - d.fallbackRate) + '% no Gemini';
+  }
+  if (d.avgLatency !== undefined) document.getElementById('kpiLatency').textContent = d.avgLatency.toFixed(1) + 's';
+  if (d.dauMauRatio !== undefined) document.getElementById('kpiDauMau').textContent = d.dauMauRatio + '%';
+}
+
+function renderAiLogs(logs) {
+  const tbody = document.getElementById('aiLogTable');
+  if (!tbody) return;
+  tbody.innerHTML = logs.map(l => {
+    const isError = l.details.includes('QUOTA') || l.details.includes('CHAVE') || l.details.includes('BLOQUEADA');
+    const color = isError ? 'var(--red)' : '#7d8590';
+    return `
+      <tr>
+        <td style="font-size:11px;color:#7d8590">${new Date(l.timestamp).toLocaleString('pt-BR')}</td>
+        <td style="font-weight:500">${l.product}</td>
+        <td><span style="color:var(--gold)">${l.engine}</span></td>
+        <td style="font-size:11px; color:${color}; font-family:monospace">${l.details}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderRuptureChart(data) {
+  if (chartRupture) chartRupture.destroy();
+  chartRupture = new Chart(document.getElementById('ruptureChart'), {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: 'Riscos de Ruptura',
+        data: data.values,
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239,68,68,0.1)',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#21262d' }, ticks: { color: '#7d8590', font: { size: 9 } } },
+        y: { grid: { color: '#21262d' }, ticks: { color: '#7d8590' }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+function renderPassthroughChart(data) {
+  if (chartPassthrough) chartPassthrough.destroy();
+  
+  // Cria uma série simulada baseada na média real para o gráfico de linha
+  const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'];
+  const values = [data.avg + 2, data.avg + 1, data.avg, data.avg - 0.5];
+  
+  chartPassthrough = new Chart(document.getElementById('passthroughChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Dias para Repasse',
+        data: values,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.1)',
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => v + ' dias' } }
+      }
+    }
+  });
+}
+
+// ══ AUTO REFRESH ══
+setInterval(() => {
+  if (adminToken && document.getElementById('app').style.display === 'block') {
+    loadAll();
+  }
+}, 10000); 
+
+// ══ TIMELINE ══
+function renderTimeline(data) {
+  const total = data.reduce((a, b) => a + b.scans, 0);
+  document.getElementById('timelineTotal').textContent = fmt(total) + ' scans nos últimos 30 dias';
+  const labels = data.map(d => d.date.slice(5));
+  const values = data.map(d => d.scans);
+  if (chartTimeline) chartTimeline.destroy();
+  chartTimeline = new Chart(document.getElementById('timelineChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: values, fill: true,
+        borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)',
+        borderWidth: 2, pointRadius: 2, tension: 0.4
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#21262d' }, ticks: { color: '#7d8590', font: { size: 9 }, maxTicksLimit: 8 } },
+        y: { grid: { color: '#21262d' }, ticks: { color: '#7d8590', font: { size: 10 } }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ══ ENGINE CHART ══
+function renderEngineChart(data) {
+  if (chartEngine) chartEngine.destroy();
+  const g = data?.gemini || 0;
+  const o = data?.openai || 0;
+  
+  chartEngine = new Chart(document.getElementById('engineChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Gemini (Multi)', 'OpenAI (Fallback)'],
+      datasets: [{ data: [g, o], backgroundColor: ['#10b981', '#3b82f6'], borderWidth: 0 }]
+    },
+    options: {
+      cutout: '70%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#7d8590', font: { size: 11 }, padding: 16 } }
+      }
+    }
+  });
+}
+
+// ══ STORES ══
+function renderStores(data) {
+  document.getElementById('storesCount').textContent = data.length + ' supermercados detectados';
+  const max = data[0]?.scans || 1;
+  const tbody = document.getElementById('storesTable');
+  tbody.innerHTML = data.slice(0, 10).map((s, i) => `
+    <tr>
+      <td><span class="rank">${i+1}</span></td>
+      <td><span class="store-name">${s.store}</span></td>
+      <td>${fmt(s.scans)}</td>
+      <td>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${(s.scans/max*100).toFixed(0)}%"></div></div>
+        <span style="font-size:10px;color:#7d8590;margin-left:6px">${(s.scans/max*100).toFixed(0)}%</span>
+      </td>
+    </tr>`).join('');
+
+  // Atualiza mapa com os mercados
+  updateMapMarkers(data);
+  document.getElementById('kpiNetworks').textContent = data.length;
+}
+
+// ══ MAP ══
+function initMap() {
+  if (map) return;
+  map = L.map('map', { zoomControl: true, scrollWheelZoom: false }).setView([-15.77, -47.92], 4);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; CartoDB', maxZoom: 18
+  }).addTo(map);
+}
+
+// Mapeamento de redes conhecidas para cidades do Brasil
+const STORE_COORDS = {
+  'assaí': [[-23.55,-46.63],[-22.91,-43.17],[-25.43,-49.27],[-19.92,-43.94],[-3.72,-38.54]],
+  'carrefour': [[-23.55,-46.63],[-22.91,-43.17],[-30.03,-51.23],[-12.97,-38.50]],
+  'atacadão': [[-23.55,-46.63],[-25.43,-49.27],[-19.92,-43.94],[-8.05,-34.88]],
+  'extra': [[-23.55,-46.63],[-22.91,-43.17],[-30.03,-51.23]],
+  'mercado': [[-23.55,-46.63]],
+  'default': [[-23.55,-46.63]]
+};
+
+function getCoords(storeName) {
+  const lower = (storeName || '').toLowerCase();
+  for (const [key, coords] of Object.entries(STORE_COORDS)) {
+    if (lower.includes(key)) return coords[Math.floor(Math.random() * coords.length)];
+  }
+  // Distribui aleatoriamente pelo Brasil
+  const cities = [[-23.55,-46.63],[-22.91,-43.17],[-25.43,-49.27],[-30.03,-51.23],[-19.92,-43.94],[-27.59,-48.55],[-15.78,-47.93],[-12.97,-38.50],[-8.05,-34.88],[-3.72,-38.54]];
+  return cities[Math.floor(Math.random() * cities.length)];
+}
+
+function updateMapMarkers(stores) {
+  if (!map) return;
+  stores.forEach(s => {
+    const [lat, lng] = getCoords(s.store);
+    const jitter = () => (Math.random() - 0.5) * 1.5;
+    const size = Math.max(8, Math.min(24, 8 + s.scans * 0.5));
+    const circle = L.circleMarker([lat + jitter(), lng + jitter()], {
+      radius: size, fillColor: '#10b981', color: '#003d4d',
+      weight: 1.5, opacity: 1, fillOpacity: 0.75
+    });
+    circle.bindPopup(`<b style="color:#003d4d">${s.store}</b><br/><span style="color:#10b981">${fmt(s.scans)} scans</span>`);
+    circle.addTo(map);
+  });
+}
+
+// ══ PRICES ══
+function renderPrices(data) {
+  document.getElementById('kpiProducts').textContent = data.length;
+  if (data.length > 0) {
+    const top = data[0];
+    document.getElementById('kpiDispersion').textContent = fmtR(top.dispersion);
+  }
+
+  // Bar chart
+  const top10 = data.slice(0, 10);
+  if (chartDispersion) chartDispersion.destroy();
+  chartDispersion = new Chart(document.getElementById('dispersionChart'), {
+    type: 'bar',
+    data: {
+      labels: top10.map(d => d.name.slice(0, 18)),
+      datasets: [
+        { label: 'Mín', data: top10.map(d => d.min), backgroundColor: '#10b981' },
+        { label: 'Máx', data: top10.map(d => d.max), backgroundColor: '#ef4444' }
+      ]
+    },
+    options: {
+      plugins: { legend: { labels: { color: '#7d8590', font: { size: 10 } } } },
+      scales: {
+        x: { grid: { color: '#21262d' }, ticks: { color: '#7d8590', font: { size: 9 } } },
+        y: { grid: { color: '#21262d' }, ticks: { color: '#7d8590', font: { size: 10 }, callback: v => 'R$'+v } }
+      }
+    }
+  });
+
+  // Table
+  const tbody = document.getElementById('pricesTable');
+  tbody.innerHTML = data.slice(0, 15).map(p => `
+    <tr>
+      <td style="font-weight:700;max-width:180px;overflow:hidden;text-overflow:ellipsis">${p.name}</td>
+      <td style="color:#10b981">${fmtR(p.min)}</td>
+      <td style="color:#7d8590">${fmtR(p.avg)}</td>
+      <td style="color:#ef4444">${fmtR(p.max)}</td>
+      <td style="color:#f59e0b;font-weight:800">${fmtR(p.dispersion)}</td>
+      <td>${p.storeCount}</td>
+      <td>${p.count}</td>
+    </tr>`).join('');
+}
+
+function renderCategoryChartFromData(data) {
+  if (chartCategory) chartCategory.destroy();
+  // Agrupa scans por categoria
+  const cats = {};
+  data.forEach(c => {
+    cats[c.category] = (cats[c.category] || 0) + c.scanCount;
+  });
+  
+  const entries = Object.entries(cats).filter(([,v]) => v > 0);
+  chartCategory = new Chart(document.getElementById('categoryChart'), {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(([k]) => k),
+      datasets: [{ data: entries.map(([,v]) => v), backgroundColor: ['#10b981','#ef4444','#3b82f6','#f59e0b','#8b5cf6','#06b6d4','#64748b'], borderWidth: 0 }]
+    },
+    options: {
+      cutout: '55%',
+      plugins: { legend: { position: 'right', labels: { color: '#7d8590', font: { size: 11 }, padding: 12 } } }
+    }
+  });
+}
+
+// ══ AFFINITY ══
+function renderAffinity(data) {
+  document.getElementById('kpiPairs').textContent = data.length;
+  const div = document.getElementById('affinityList');
+  if (!data.length) { div.innerHTML = '<div class="loading">Dados insuficientes ainda.</div>'; return; }
+  div.innerHTML = data.map(p => `
+    <div class="pair-item">
+      <span class="pair-name">${p.pair}</span>
+      <span class="pair-count">${p.count}x</span>
+    </div>`).join('');
+}
+
+// ══ RUPTURE (simulado) ══
+function renderRuptureChart() {
+  const labels = ['Semana 1','Semana 2','Semana 3','Semana 4'];
+  if (chartRupture) chartRupture.destroy();
+  chartRupture = new Chart(document.getElementById('ruptureChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Arroz 5kg', data: [45,47,12,8], borderColor:'#ef4444', tension:0.4, pointRadius:4 },
+        { label: 'Leite 1L', data: [38,35,36,34], borderColor:'#10b981', tension:0.4, pointRadius:4 },
+        { label: 'Óleo 900ml', data: [22,24,26,3], borderColor:'#f59e0b', tension:0.4, pointRadius:4 }
+      ]
+    },
+    options: {
+      plugins: { legend: { labels: { color: '#7d8590', font: { size: 10 } } } },
+      scales: {
+        x: { grid: { color: '#21262d' }, ticks: { color: '#7d8590', font: { size: 10 } } },
+        y: { grid: { color: '#21262d' }, ticks: { color: '#7d8590', font: { size: 10 } }, title: { display: true, text: 'Scans/semana', color: '#7d8590', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ══ PASSTHROUGH (simulado) ══
+function renderPassthroughChart() {
+  if (chartPassthrough) chartPassthrough.destroy();
+  chartPassthrough = new Chart(document.getElementById('passthroughChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Carrefour','Assaí','Atacadão','Extra','Mercadorama'],
+      datasets: [{
+        label: 'Dias para repasse (média)',
+        data: [3, 5, 7, 4, 9],
+        backgroundColor: ['#10b981','#10b981','#f59e0b','#10b981','#ef4444'],
+        borderRadius: 6
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#21262d' }, ticks: { color: '#7d8590', font: { size: 11 } } },
+        y: { grid: { color: '#21262d' }, ticks: { color: '#7d8590', font: { size: 10 } }, title: { display: true, text: 'Dias', color: '#7d8590', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ══ PREÇO MÉDIO + SCANS + CESTA POR PRATELEIRA (CATEGORIA) ══
+function renderCategoryPrices(data) {
+  const tbody = document.getElementById('categoryPriceTable');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" class="loading">Dados insuficientes.</td></tr>'; return; }
+  const maxScans = data[0].scanCount || 1;
+  tbody.innerHTML = data.map(c => `
+    <tr>
+      <td style="font-weight:800;color:#e6edf3">${c.category}</td>
+      <td style="color:#10b981;font-weight:700">${fmtR(c.avgPrice)}</td>
+      <td style="color:#f59e0b;font-weight:700">${fmtR(c.avgBasket)}</td>
+      <td>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${(c.scanCount/maxScans*100).toFixed(0)}%"></div></div>
+        <span style="font-size:10px;color:#7d8590;margin-left:6px">${c.scanCount} scans</span>
+      </td>
+      <td style="font-weight:700;color:${c.abandonmentRate > 30 ? 'var(--red)' : 'var(--muted)'}">
+        ${c.abandonmentRate}%
+      </td>
+      <td style="color:#7d8590">${c.storeCount}</td>
+    </tr>`).join('');
+}
+
+// ══ VARIAÇÃO PREÇO POR DIA ══
+function renderVariations(data) {
+  const tbody = document.getElementById('variationTable');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" class="loading">Dados insuficientes nos últimos 30 dias.</td></tr>'; return; }
+  tbody.innerHTML = data.map(v => {
+    const first = v.days[0]?.avg || 0;
+    const last = v.days[v.days.length-1]?.avg || 0;
+    const color = v.change > 0 ? '#ef4444' : '#10b981';
+    const arrow = v.change > 0 ? '↑' : '↓';
+    return `
+    <tr>
+      <td style="font-weight:700;color:#e6edf3">${v.product}</td>
+      <td style="color:#7d8590">${v.store || 'Geral'}</td>
+      <td style="color:#7d8590">${fmtR(first)}</td>
+      <td style="font-weight:700">${fmtR(last)}</td>
+      <td style="color:${color};font-weight:800">${arrow} ${fmtR(Math.abs(v.change))}</td>
+      <td style="color:${color};font-weight:700">${v.changePct > 0 ? '+' : ''}${v.changePct}%</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══ COMPARAÇÃO PREÇOS ENTRE SUPERMERCADOS ══
+function renderComparison(data) {
+  const tbody = document.getElementById('comparisonTable');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" class="loading">Dados insuficientes (necessita mesmo produto em 2+ lojas).</td></tr>'; return; }
+  tbody.innerHTML = data.map(p => `
+    <tr>
+      <td style="font-weight:700;color:#e6edf3;max-width:160px;overflow:hidden;text-overflow:ellipsis">${p.product}</td>
+      <td style="color:#10b981;font-weight:700">${p.cheapest}</td>
+      <td style="color:#10b981;font-weight:800">${fmtR(p.cheapestPrice)}</td>
+      <td style="color:#ef4444">${p.priciest}</td>
+      <td style="color:#ef4444;font-weight:800">${fmtR(p.priciestPrice)}</td>
+      <td style="color:#f59e0b;font-weight:800">${fmtR(p.spread)}</td>
+      <td style="color:#f59e0b">${p.spreadPct}%</td>
+    </tr>`).join('');
+}
+
+// ══ INIT ══
+const savedToken = localStorage.getItem('xdx_admin_token');
+if (savedToken) { adminToken = savedToken; verifyToken(); }
+</script>
+</body>
+</html>

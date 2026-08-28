@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-petroleum: #003d4d;
+  --color-emerald: #4fd1c5; /* Brighter teal/emerald from screenshot */
+  --color-emerald-dark: #38b2ac;
+  --color-off-white: #ffffff;
+  --color-beige: #fdf6e3;
+  --color-silver: #718096;
+}
+
+@layer base {
+  :root {
+    --safe-area-inset-top: env(safe-area-inset-top);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom);
+    color-scheme: light;
+  }
+
+  html, body, #root {
+    color-scheme: light only !important;
+    forced-color-adjust: none !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    background-image: linear-gradient(#ffffff, #ffffff) !important;
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+    color: #1a202c !important;
+    background-attachment: fixed;
+    overscroll-behavior: none;
+    @apply text-gray-900 antialiased h-full;
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent iOS auto-zoom on inputs less than 16px */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}

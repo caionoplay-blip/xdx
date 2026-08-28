@@ -1,0 +1,7 @@
+{
+  "name": "XĐX Mercado",
+  "description": "Soluções Financeiras & Tecnologia. Escaneie etiquetas de preço e organize sua lista de compras.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

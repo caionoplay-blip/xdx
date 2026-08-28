@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Negócios XĐX Mercado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10b981;
+            --secondary: #003d4d;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --accent: #f59e0b;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        @media print {
+            .no-print { display: none; }
+            body { background: white !important; padding: 0 !important; }
+            .page-break { page-break-before: always; }
+            .card { box-shadow: none !important; border: 1px solid #eee !important; }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f1f5f9; 
+            color: var(--text-main); 
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 80px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+
+        header { border-bottom: 4px solid var(--primary); padding-bottom: 30px; margin-bottom: 50px; }
+        .logo-area { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        h1 { font-family: 'Outfit', sans-serif; font-size: 48px; color: var(--secondary); font-weight: 800; letter-spacing: -2px; }
+        .doc-type { background: var(--secondary); color: white; padding: 8px 20px; border-radius: 50px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+
+        h2 { font-family: 'Outfit', sans-serif; font-size: 28px; color: var(--secondary); margin: 40px 0 20px; border-left: 6px solid var(--primary); padding-left: 20px; }
+        h3 { font-size: 20px; color: var(--dark); margin: 25px 0 15px; font-weight: 700; }
+
+        p { margin-bottom: 20px; text-align: justify; color: #334155; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin: 30px 0; }
+        .card { background: #f8fafc; padding: 30px; border-radius: 16px; border: 1px solid var(--border); text-align: center; }
+        .card strong { display: block; color: var(--primary); font-size: 14px; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .card .value { font-size: 32px; font-weight: 800; color: var(--secondary); font-family: 'Outfit', sans-serif; }
+        .card .sub { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+
+        table { width: 100%; border-collapse: collapse; margin: 30px 0; font-size: 15px; }
+        table th { background: #f8fafc; text-align: left; padding: 15px; border-bottom: 2px solid var(--border); color: var(--secondary); font-weight: 700; }
+        table td { padding: 15px; border-bottom: 1px solid var(--border); }
+        .highlight { background: #ecfdf5; font-weight: 700; color: var(--primary); }
+
+        .exec-summary { background: #f0fdf4; border-radius: 20px; padding: 40px; margin-bottom: 40px; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .exec-summary h3 { margin-top: 0; color: var(--primary); }
+
+        .footer { margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 14px; }
+        
+        .print-btn {
+            position: fixed; top: 20px; right: 20px; background: var(--secondary); color: white; border: none; padding: 15px 30px; border-radius: 50px; 
+            font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 1000;
+        }
+        .print-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0,0,0,0.2); }
+
+        .chart-box { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin: 20px 0; }
+        .bar-container { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 20px; }
+        .bar { flex: 1; background: var(--primary); border-radius: 4px 4px 0 0; position: relative; }
+        .bar::after { content: attr(data-label); position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">Exportar como PDF</button>
+
+<div class="container">
+    <header>
+        <div class="logo-area">
+            <h1>XĐX MERCADO</h1>
+            <div class="doc-type">Plano de Negócios & Projeção</div>
+        </div>
+        <p style="font-weight: 600; font-size: 18px; color: var(--text-muted);">Estudo de Viabilidade Econômica e Gestão Administrativa v3.1</p>
+    </header>
+
+    <div class="exec-summary">
+        <h3>Sumário Executivo</h3>
+        <p>O XĐX Mercado é um ecossistema de Data-as-a-Service (DaaS) que resolve a falta de visibilidade do varejo físico. Através de um scanner inteligente e gratuito para o consumidor, capturamos dados granulares de preço e comportamento de compra (Shelf Intelligence). O modelo de negócio é baseado na monetização dupla: Publicidade Integrada (B2C) e Venda de Inteligência de Cesta (B2B).</p>
+    </div>
+
+    <section>
+        <h2>1. Estrutura Administrativa</h2>
+        <p>O projeto opera sob um modelo de <strong>Eficiência Extrema</strong>. A infraestrutura é baseada em computação sem servidor (Serverless), o que permite custos operacionais fixos próximos de zero, escalando apenas conforme o volume de usuários aumenta.</p>
+        
+        <h3>Principais Vetores de Custo:</h3>
+        <ul>
+            <li><strong>Inteligência Artificial:</strong> Processamento OCR e semântico via Gemini/OpenAI.</li>
+            <li><strong>Armazenamento de Dados:</strong> Manutenção da base PostgreSQL (Supabase) para análise histórica.</li>
+            <li><strong>Infraestrutura:</strong> Cloud Functions e hosting via Vercel.</li>
+        </ul>
+    </section>
+
+    <div class="page-break"></div>
+
+    <section>
+        <h2>2. Estimativas de Custo Operacional (OpEx)</h2>
+        <p>Abaixo apresentamos a estimativa de custo por unidade de processamento (scan), otimizada pelo nosso algoritmo de redundância "Triple-Engine".</p>
+        
+        <div class="grid">
+            <div class="card">
+                <strong>Custo de IA (Gemini)</strong>
+                <div class="value">R$ 0,0008</div>
+                <div class="sub">Por scan (Otimizado)</div>
+            </div>
+            <div class="card">
+                <strong>Custo de IA (OpenAI)</strong>
+                <div class="value">R$ 0,085</div>
+                <div class="sub">Por scan (Emergencial)</div>
+            </div>
+            <div class="card">
+                <strong>Infraestrutura</strong>
+                <div class="value">Zero*</div>
+                <div class="sub">Até 100k requisições/mês</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Escala de Usuários</th>
+                    <th>Volume de Scans/mês</th>
+                    <th>Custo Estimado (IA)</th>
+                    <th>Custo Fixos (Servidores)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1.000 (MVP)</td>
+                    <td>20.000</td>
+                    <td>R$ 16,00</td>
+                    <td>R$ 0,00 (Free Tier)</td>
+                </tr>
+                <tr>
+                    <td>10.000 (Crescimento)</td>
+                    <td>200.000</td>
+                    <td>R$ 160,00</td>
+                    <td>R$ 110,00 (Pro Tier)</td>
+                </tr>
+                <tr class="highlight">
+                    <td>100.000 (Escala)</td>
+                    <td>2.000.000</td>
+                    <td>R$ 1.600,00</td>
+                    <td>R$ 220,00 (Enterprise)</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>3. Projeção de Receitas & Monetização</h2>
+        <p>O XĐX Mercado possui três canais principais de entrada de capital, garantindo um LTV (Lifetime Value) elevado.</p>
+
+        <h3>Canais de Receita:</h3>
+        <ol>
+            <li><strong>AdMob Interstitial:</strong> Exibição de anúncios após scans. Expectativa de CPM de R$ 15,00 a R$ 40,00 no Brasil em nicho de varejo.</li>
+            <li><strong>B2B Data Analytics:</strong> Venda de relatórios de dispersão de preço e afinidade de marca para supermercados e indústria.</li>
+            <li><strong>Lead Generation:</strong> Encaminhamento de ofertas personalizadas baseadas no histórico do carrinho.</li>
+        </ol>
+
+        <div class="chart-box">
+            <h3>Projeção Mensal Estimada (10.000 Usuários)</h3>
+            <div class="bar-container">
+                <div class="bar" style="height: 40%;" data-label="Ads (R$ 4k)"></div>
+                <div class="bar" style="height: 100%; background: var(--secondary);" data-label="B2B Data (R$ 10k)"></div>
+                <div class="bar" style="height: 60%;" data-label="Leads (R$ 6k)"></div>
+                <div class="bar" style="height: 85%; background: var(--primary);" data-label="Economia User (R$ 8.5k)"></div>
+            </div>
+            <p style="font-size: 11px; margin-top: 35px; text-align: center; font-weight: 600;">Receita Estimada: <strong>R$ 20.000,00 / mês</strong> | Margem de Lucro: <strong>>90%</strong></p>
+        </div>
+    </section>
+
+    <div class="page-break"></div>
+
+    <section>
+        <h2>4. Próximos Passos e Expansão</h2>
+        <p>O foco administrativo para os próximos 12 meses é a consolidação da base de dados regional para tornar o produto B2B (DaaS) o carro-chefe financeiro do projeto.</p>
+        
+        <ul>
+            <li><strong>Fase 1:</strong> Lançamento Android e aquisição de primeiros 5k usuários.</li>
+            <li><strong>Fase 2:</strong> Ativação do módulo de cupons e parcerias diretas com redes locais.</li>
+            <li><strong>Fase 3:</strong> Venda da API de preços competitivos para a concorrência e indústrias de bens de consumo (FMCG).</li>
+        </ul>
+    </section>
+
+    <div class="footer">
+        <p>Documento gerado autonomamente em 20 de Abril de 2026. XĐX Mercado Intelligent Systems.</p>
+        <p style="font-size: 10px; margin-top: 10px;">Confidencial - Uso Interno e Estratégico.</p>
+    </div>
+</div>
+
+</body>
+</html>
